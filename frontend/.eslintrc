@@ -1,0 +1,32 @@
+{
+  "extends": [
+    "plugin:prettier/recommended",
+    "eslint:recommended",
+    "plugin:react/recommended",
+    "plugin:@next/next/recommended"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "sourceType": "module",
+    "allowImportExportEverywhere": true
+  },
+  "env": {
+    "browser": true,
+    "node": true,
+    "es6": true,
+    "jest": true
+  },
+  "plugins": ["unused-imports", "prettier"],
+  "rules": {
+    "unused-imports/no-unused-imports": "error",
+    "no-unused-vars": "warn",
+    "no-console": "warn",
+    "react/prop-types": "off",
+    "semi": [2, "always"],
+    "object-curly-spacing": [2, "always"],
+    "prettier/prettier": ["error", { "singleQuote": true, "tabWidth": 4 }],
+    "indent": [0, "tab"],
+    "endOfLine": "off",
+    "sort-imports": "error"
+  }
+}
