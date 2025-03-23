@@ -4,12 +4,12 @@ on:
   push:
     branches:
       - master
-      - dev
+      - devg
   pull_request:
 
 jobs:
   build-backend:
-    name: Сборка и тесты бекенда
+    name: Backend build, checkstyle and tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -30,7 +30,7 @@ jobs:
         run: mvn checkstyle:check
 
   build-frontend:
-    name: Сборка и тесты фронтенда
+    name: Frontend build, checkstyle and tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
