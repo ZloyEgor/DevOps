@@ -1,0 +1,40 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2025-03-23-create-table-user
+      author: Ivan Nesterov
+      changes:
+        - sqlFile:
+            path: db/scripts/2025-03-23-create-table-client.sql
+            endDelimiter: ";"
+            splitStatements: true
+            stripComments: false
+
+  - changeSet:
+      id: 2025-03-23-create-table-catalog
+      author: Ivan Nesterov
+      changes:
+        - sqlFile:
+            path: db/scripts/2025-03-23-create-table-catalog.sql
+            endDelimiter: ";"
+            splitStatements: true
+            stripComments: false
+
+  - changeSet:
+      id: 2025-03-23-create-table-product
+      author: Ivan Nesterov
+      changes:
+        - sqlFile:
+            path: db/scripts/2025-03-23-create-table-product.sql
+            endDelimiter: ";"
+            splitStatements: true
+            stripComments: false
+
+  - changeSet:
+      id: 2025-03-23-create-table-order
+      author: Ivan Nesterov
+      changes:
+        - sqlFile:
+            path: db/scripts/2025-03-23-create-table-ordering.sql
+            endDelimiter: ";"
+            splitStatements: true
+            stripComments: false

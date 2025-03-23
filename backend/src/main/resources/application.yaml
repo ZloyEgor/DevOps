@@ -1,6 +1,22 @@
-spring:
-  application:
-    name: cvet-ochey-backend
-
 server:
   port: 8080
+
+spring:
+  application:
+    name: cvet-ochey
+  jpa:
+    database: postgresql
+    show-sql: true
+    hibernate:
+      ddl-auto: create-drop
+  datasource:
+    url: jdbc:postgresql://localhost:5432/cvetochey
+    username: ${DATABASE_LOGIN}
+    password: ${DATABASE_PASSWORD}
+    driverClassName: org.postgresql.Driver
+  sql:
+    init:
+      platform: postgres
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    enabled: true
