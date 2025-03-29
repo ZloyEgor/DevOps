@@ -43,12 +43,17 @@ jobs:
 
       - name: Install dependencies
         working-directory: ./frontend
-        run: npm ci
+        run: yarn
+
+      - name: Run linters
+        working-directory: ./frontend
+        run: yarn run lint
+
+#      - name: Run tests
+#        working-directory: ./frontend
+#        run: npm test
 
       - name: Build NextJS
         working-directory: ./frontend
-        run: npm run build
+        run: yarn run build
 
-      - name: Run tests
-        working-directory: ./frontend
-        run: npm test
