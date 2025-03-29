@@ -40,9 +40,12 @@ jobs:
       - name: Build and Test with Maven
         working-directory: ./backend
         env:
+          DATABASE_DRIVER: jdbc:postgresql
           DATABASE_HOST: db
+          DATABASE_PORT: 5432
           DATABASE_LOGIN: test
           DATABASE_PASSWORD: test
+          DATABASE_NAME: cvetochey
         run: mvn clean install
 
       - name: Run Checkstyle
