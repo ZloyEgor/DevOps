@@ -32,6 +32,8 @@ public class Product {
 
     private Double price;
 
+    private String pictureUrl;
+
     @ManyToOne
     @JoinColumn(name = "catalog_id")
     private Catalog catalog;

@@ -10,54 +10,53 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.itmo.cvetochey.model.Ordering;
-import ru.itmo.cvetochey.repository.OrderingRepository;
+import ru.itmo.cvetochey.model.Order;
+import ru.itmo.cvetochey.repository.OrderRepository;
 
 @RestController
-@RequestMapping("cvet-ochey/api/v1/ordering")
-public class OrderingController {
+@RequestMapping("cvet-ochey/api/v1/order")
+public class OrderController {
 
-    private final OrderingRepository orderingRepository;
+    private final OrderRepository orderRepository;
 
-    public OrderingController(OrderingRepository orderingRepository) {
-        this.orderingRepository = orderingRepository;
+    public OrderController(OrderRepository orderRepository) {
+        this.orderRepository = orderRepository;
     }
 
     @GetMapping("/get-all")
-    public List<Ordering> getAllOrders() {
-        return orderingRepository.findAll();
+    public List<Order> getAllOrders() {
+        return orderRepository.findAll();
     }
 
     @GetMapping("/get/{id}")
-    public ResponseEntity<Ordering> getOrderById(@PathVariable Long id) {
-        return orderingRepository.findById(id)
+    public ResponseEntity<Order> getOrderById(@PathVariable Long id) {
+        return orderRepository.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.noContent().build());
     }
 
     @PostMapping("/create")
-    public Ordering createOrder(@RequestBody Ordering ordering) {
-        return orderingRepository.save(ordering);
+    public Order createOrder(@RequestBody Order ordering) {
+        return orderRepository.save(ordering);
     }
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<Ordering> updateOrder(@PathVariable Long id, @RequestBody Ordering updated) {
-        return orderingRepository.findById(id)
+    public ResponseEntity<Order> updateOrder(@PathVariable Long id, @RequestBody Order updated) {
+        return orderRepository.findById(id)
                 .map(o -> {
-                    o.setQuantity(updated.getQuantity());
                     o.setClient(updated.getClient());
                     o.setProduct(updated.getProduct());
-                    return ResponseEntity.ok(orderingRepository.save(o));
+                    return ResponseEntity.ok(orderRepository.save(o));
                 })
                 .orElse(ResponseEntity.noContent().build());
     }
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
-        if (!orderingRepository.existsById(id)) {
+        if (!orderRepository.existsById(id)) {
             return ResponseEntity.noContent().build();
         }
-        orderingRepository.deleteById(id);
+        orderRepository.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 
