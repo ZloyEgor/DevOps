@@ -32,7 +32,7 @@ public class ClientController {
     public ResponseEntity<Client> getUserById(@PathVariable Long id) {
         return clientRepository.findById(id)
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.noContent().build());
     }
 
     @PostMapping("/create")
@@ -48,13 +48,13 @@ public class ClientController {
                     user.setEmail(updated.getEmail());
                     return ResponseEntity.ok(clientRepository.save(user));
                 })
-                .orElse(ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.noContent().build());
     }
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         if (!clientRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.noContent().build();
         }
         clientRepository.deleteById(id);
         return ResponseEntity.noContent().build();

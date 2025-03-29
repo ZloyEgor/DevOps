@@ -32,7 +32,7 @@ public class OrderingController {
     public ResponseEntity<Ordering> getOrderById(@PathVariable Long id) {
         return orderingRepository.findById(id)
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.noContent().build());
     }
 
     @PostMapping("/create")
@@ -49,13 +49,13 @@ public class OrderingController {
                     o.setProduct(updated.getProduct());
                     return ResponseEntity.ok(orderingRepository.save(o));
                 })
-                .orElse(ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.noContent().build());
     }
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
         if (!orderingRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.noContent().build();
         }
         orderingRepository.deleteById(id);
         return ResponseEntity.noContent().build();
