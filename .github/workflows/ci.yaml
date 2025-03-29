@@ -37,8 +37,14 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Ping db host in container
-        run: ping -c 4 db
+      - name: Install dnsutils and netcat
+        run: sudo apt-get update && sudo apt-get install -y dnsutils netcat
+
+      - name: Debug DNS resolution
+        run: nslookup db
+
+      - name: Debug open port
+        run: nc -zv db 5432
 
       - name: Build and Test with Maven
         working-directory: ./backend
