@@ -1,0 +1,27 @@
+name: 🚀 Feature Request
+description: Suggest a new feature or enhancement
+title: '[Feature]: '
+labels: [feature]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### 🧠 Tip  
+        Once created, run this to create a branch:
+        ```
+        git checkout -b feature/<issue-number>-<short-description>
+        ```
+  - type: input
+    id: summary
+    attributes:
+      label: What should be done?
+      placeholder: e.g. Add product carousel
+  - type: textarea
+    id: details
+    attributes:
+      label: More context or mockups?
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        🛠️ After you create this issue, GitHub Actions will help set up a branch.
