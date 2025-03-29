@@ -37,8 +37,7 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name:
-          Debug: ping db
+      - name: Ping db host in container
         run: ping -c 4 db
 
       - name: Build and Test with Maven
