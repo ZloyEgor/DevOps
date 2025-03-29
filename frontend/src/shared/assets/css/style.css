@@ -7,6 +7,11 @@
     }
 }
 
+body {
+    margin: 0;
+
+}
+
 ::selection {
     background: var(--color-select);
     text-shadow: none;

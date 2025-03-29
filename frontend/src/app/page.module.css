@@ -1,3 +1,5 @@
 .wrapper {
     padding: 32px;
+    box-sizing: border-box;
+    min-height: 100%;
 }
