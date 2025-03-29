@@ -1,6 +1,17 @@
 databaseChangeLog:
+
   - changeSet:
-      id: 2025-03-23-create-table-user
+      id: 2025-03-23-create-table-product-catalog
+      author: Ivan Nesterov
+      changes:
+        - sqlFile:
+            path: db/scripts/2025-03-23-create-table-product-catalog.sql
+            endDelimiter: ";"
+            splitStatements: true
+            stripComments: false
+
+  - changeSet:
+      id: 2025-03-23-create-table-client
       author: Ivan Nesterov
       changes:
         - sqlFile:
@@ -10,17 +21,7 @@ databaseChangeLog:
             stripComments: false
 
   - changeSet:
-      id: 2025-03-23-create-table-catalog
-      author: Ivan Nesterov
-      changes:
-        - sqlFile:
-            path: db/scripts/2025-03-23-create-table-catalog.sql
-            endDelimiter: ";"
-            splitStatements: true
-            stripComments: false
-
-  - changeSet:
-      id: 2025-03-23-create-table-product
+      id: 2025-03-29-create-table-product
       author: Ivan Nesterov
       changes:
         - sqlFile:
@@ -30,11 +31,61 @@ databaseChangeLog:
             stripComments: false
 
   - changeSet:
-      id: 2025-03-23-create-table-order
+      id: 2025-03-23-create-table-ordering
       author: Ivan Nesterov
       changes:
         - sqlFile:
             path: db/scripts/2025-03-23-create-table-ordering.sql
+            endDelimiter: ";"
+            splitStatements: true
+            stripComments: false
+
+  - changeSet:
+      id: 2025-03-29-create-tуpe-catalog-type
+      author: Ivan Nesterov
+      changes:
+        - sqlFile:
+            path: db/scripts/2025-03-29-create-tуpe-catalog-type.sql
+            endDelimiter: ";"
+            splitStatements: true
+            stripComments: false
+
+  - changeSet:
+      id: 2025-03-29-add-column-catalog-type-to-catalog-table
+      author: Ivan Nesterov
+      changes:
+        - sqlFile:
+            path: db/scripts/2025-03-29-add-column-catalog-type-to-catalog-table.sql
+            endDelimiter: ";"
+            splitStatements: true
+            stripComments: false
+
+  - changeSet:
+      id: 2025-03-29--01-filling-test-data
+      author: Ivan Nesterov
+      changes:
+        - sqlFile:
+            path: db/scripts/2025-03-29--01-filling-test-data.sql
+            endDelimiter: ";"
+            splitStatements: true
+            stripComments: false
+
+  - changeSet:
+      id: 2025-03-30-create-type-user-role
+      author: Ivan Nesterov
+      changes:
+        - sqlFile:
+            path: db/scripts/2025-03-30-create-type-user-role.sql
+            endDelimiter: ";"
+            splitStatements: true
+            stripComments: false
+
+  - changeSet:
+      id: 2025-03-29-add-column-user-role-to-client
+      author: Ivan Nesterov
+      changes:
+        - sqlFile:
+            path: db/scripts/2025-03-29-add-column-user-role-to-client.sql
             endDelimiter: ";"
             splitStatements: true
             stripComments: false
