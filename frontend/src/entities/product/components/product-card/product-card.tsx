@@ -6,9 +6,19 @@ import { preparePrice } from '@/shared/utils/prepare-price';
 import { Product } from '@/entities/product';
 import Image from 'next/image';
 
-export type CatalogItemCardProps = Props<{ item: Product }, true, HTMLProps<HTMLDivElement>>;
+export type CatalogItemCardProps = Props<
+    { item: Product; withDescription?: boolean },
+    true,
+    HTMLProps<HTMLDivElement>
+>;
 
-export const ProductCard: FC<CatalogItemCardProps> = ({ item, className, children, ...rest }) => {
+export const ProductCard: FC<CatalogItemCardProps> = ({
+    item,
+    className,
+    children,
+    withDescription = true,
+    ...rest
+}) => {
     const { imageUrl, name, price, description } = item;
 
     return (
@@ -16,6 +26,7 @@ export const ProductCard: FC<CatalogItemCardProps> = ({ item, className, childre
             <Image width={256} height={256} className={styles.image} src={imageUrl} alt={name} />
             <div className={styles.descriptionContainer}>
                 <span className={styles.title}>{name}</span>
+                {withDescription ? <span className={styles.description}>{description}</span> : null}
                 <span className={styles.price}>{preparePrice(price)}</span>
                 {children}
             </div>

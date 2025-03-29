@@ -72,9 +72,9 @@ jobs:
         working-directory: ./frontend
         run: yarn run lint
 
-      # - name: Run tests
-      #   working-directory: ./frontend
-      #   run: yarn run test
+      - name: Run tests
+        working-directory: ./frontend
+        run: yarn run test
 
       - name: Build NextJS
         working-directory: ./frontend

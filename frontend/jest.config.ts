@@ -202,6 +202,8 @@ const config: Config = {
         // ...
         '^@/(.*)$': '<rootDir>/$1',
     },
+
+    setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
 };
 
 export default createJestConfig(config);
