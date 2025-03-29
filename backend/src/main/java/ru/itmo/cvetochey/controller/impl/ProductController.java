@@ -32,7 +32,7 @@ public class ProductController {
     public ResponseEntity<Product> getProductById(@PathVariable Long id) {
         return productRepository.findById(id)
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.noContent().build());
     }
 
     @PostMapping("/create")
@@ -50,13 +50,13 @@ public class ProductController {
                     p.setCatalog(updated.getCatalog());
                     return ResponseEntity.ok(productRepository.save(p));
                 })
-                .orElse(ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.noContent().build());
     }
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
         if (!productRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.noContent().build();
         }
         productRepository.deleteById(id);
         return ResponseEntity.noContent().build();

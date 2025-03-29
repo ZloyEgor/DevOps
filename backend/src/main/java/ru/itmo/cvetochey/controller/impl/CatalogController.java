@@ -32,7 +32,7 @@ public class CatalogController {
     public ResponseEntity<Catalog> getCatalogById(@PathVariable Long id) {
         return catalogRepository.findById(id)
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.noContent().build());
     }
 
     @PostMapping("/create")
@@ -48,13 +48,13 @@ public class CatalogController {
                     catalog.setDescription(updated.getDescription());
                     return ResponseEntity.ok(catalogRepository.save(catalog));
                 })
-                .orElse(ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.noContent().build());
     }
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> deleteCatalog(@PathVariable Long id) {
         if (!catalogRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.noContent().build();
         }
         catalogRepository.deleteById(id);
         return ResponseEntity.noContent().build();
