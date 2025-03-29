@@ -1,21 +1,21 @@
 .header {
   display: flex;
-  background-color: var(--background-color);
-  color: var(--text-color);
+  background-color: var(--color-background);
+  color: var(--color-text);
   align-items: center;
   padding: 12px;
 }
 
 .logo {
-  color: var(--text-color) !important;
-  width: 48px;
-  height: 48px;
-  margin-right: 12px;
+  color: var(--color-text) !important;
+  width: 56px;
+  height: 56px;
+  margin-right: 16px;
   user-select: none;
   pointer-events: none;
 }
 
 .text {
   font-family: var(--font-bold), serif;
-  font-size: var(--font-size-large);
+  font-size: var(--font-size-xl);
 }

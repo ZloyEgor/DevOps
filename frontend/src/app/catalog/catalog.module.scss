@@ -1,0 +1,12 @@
+.title {
+  font-size: var(--font-size-l);
+  font-family: var(--font-bold), serif;
+}
+
+
+.list {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 16px;
+}
