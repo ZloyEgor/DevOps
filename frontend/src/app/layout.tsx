@@ -1,19 +1,10 @@
-import './globals.css';
-import { Geist, Geist_Mono } from 'next/font/google';
+import '@/shared/assets/css/style.css';
 import { AntdRegistry } from '@ant-design/nextjs-registry';
 import type { Metadata } from 'next';
 import React from 'react';
 import { ConfigProvider } from '@/shared/config';
-
-const geistSans = Geist({
-    variable: '--font-geist-sans',
-    subsets: ['latin'],
-});
-
-const geistMono = Geist_Mono({
-    variable: '--font-geist-mono',
-    subsets: ['latin'],
-});
+import { BaseLayout } from '@/shared/components/base-layout';
+import { Header } from '@/widgets/header/header';
 
 export const metadata: Metadata = {
     title: 'Create Next App',
@@ -27,9 +18,11 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-            <body className={`${geistSans.variable} ${geistMono.variable}`}>
+            <body>
                 <AntdRegistry>
-                    <ConfigProvider>{children}</ConfigProvider>
+                    <ConfigProvider>
+                        <BaseLayout header={<Header />}>{children}</BaseLayout>
+                    </ConfigProvider>
                 </AntdRegistry>
             </body>
         </html>
