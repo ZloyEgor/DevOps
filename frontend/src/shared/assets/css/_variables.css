@@ -1,9 +1,15 @@
 * {
-    --background-color: #F7F5E7;
+    --color-background: #F7F5E7;
 
-    --text-color: #6A5B4E;
+    --color-text: #6A5B4E;
 
-    --font-size-small: 12px;
-    --font-size-regular: 16px;
-    --font-size-large: 24px;
+    --color-hover: #F3F4F6;
+
+    --color-select: #EAE5DA;
+
+
+    --font-size-s: 12px;
+    --font-size-m: 16px;
+    --font-size-l: 24px;
+    --font-size-xl: 32px;
 }
