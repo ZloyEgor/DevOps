@@ -12,21 +12,6 @@ jobs:
     name: Backend build, checkstyle and tests
     runs-on: ubuntu-latest
 
-#    services:
-#      db:
-#        image: postgres:15.2
-#        env:
-#          POSTGRES_USER: test
-#          POSTGRES_PASSWORD: test
-#          POSTGRES_DB: cvetochey
-#        ports:
-#          - 5432:5432
-#        options: >-
-#          --health-cmd="pg_isready -U test -d cvetochey"
-#          --health-interval=10s
-#          --health-timeout=5s
-#          --health-retries=5
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -37,29 +22,35 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-#      - name: Install dnsutils and netcat
-#        run: sudo apt-get update && sudo apt-get install -y dnsutils netcat
-#
-#      - name: Debug DNS resolution
-#        run: nslookup db
-#
-#      - name: Debug open port
-#        run: nc -zv db 5432
+      # - name: Install Docker Compose
+      #   run: |
+      #     sudo apt-get update
+      #     sudo apt-get install -y docker-compose
+
+      - name: Start Docker Compose
+        run: docker-compose -f backend/docker-compose.yaml up -d
+
+      - name: Wait for Postgres startup
+        run: sleep 10
 
       - name: Build and Test with Maven
         working-directory: ./backend
         env:
           DATABASE_DRIVER: jdbc:postgresql
-          DATABASE_HOST: db
+          DATABASE_HOST: localhost
           DATABASE_PORT: 5432
-          DATABASE_LOGIN: test
-          DATABASE_PASSWORD: test
+          DATABASE_LOGIN: postgres
+          DATABASE_PASSWORD: postgres
           DATABASE_NAME: cvetochey
-        run: mvn clean install -Dspring.liquibase.enabled=false
+        run: mvn clean install
 
       - name: Run Checkstyle
         working-directory: ./backend
         run: mvn checkstyle:check
+
+      - name: Stop Docker Compose
+        # Останавливаем контейнер
+        run: docker-compose -f backend/docker-compose.yaml down
 
   build-frontend:
     name: Frontend build, checkstyle and tests
@@ -81,9 +72,9 @@ jobs:
         working-directory: ./frontend
         run: yarn run lint
 
-#      - name: Run tests
-#        working-directory: ./frontend
-#        run: npm test
+      # - name: Run tests
+      #   working-directory: ./frontend
+      #   run: yarn run test
 
       - name: Build NextJS
         working-directory: ./frontend
