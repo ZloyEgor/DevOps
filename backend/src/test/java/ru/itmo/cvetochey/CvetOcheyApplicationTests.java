@@ -1,10 +1,10 @@
-package ru.itmo.cvetocheybackend;
+package ru.itmo.cvetochey;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class CvetOcheyBackendApplicationTests {
+class CvetOcheyApplicationTests {
 
     @Test
     void contextLoads() {

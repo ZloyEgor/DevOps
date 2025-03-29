@@ -11,6 +11,7 @@ jobs:
   build-backend:
     name: Backend build, checkstyle and tests
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -21,13 +22,35 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
+      - name: Install Docker Compose
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose
+
+      - name: Start Docker Compose
+        run: docker-compose -f backend/docker-compose.yaml up -d
+
+      - name: Wait for Postgres startup
+        run: sleep 10
+
       - name: Build and Test with Maven
         working-directory: ./backend
+        env:
+          DATABASE_DRIVER: jdbc:postgresql
+          DATABASE_HOST: localhost
+          DATABASE_PORT: 5432
+          DATABASE_LOGIN: postgres
+          DATABASE_PASSWORD: postgres
+          DATABASE_NAME: cvetochey
         run: mvn clean install
 
       - name: Run Checkstyle
         working-directory: ./backend
         run: mvn checkstyle:check
+
+      - name: Stop Docker Compose
+        # Останавливаем контейнер
+        run: docker-compose -f backend/docker-compose.yaml down
 
   build-frontend:
     name: Frontend build, checkstyle and tests
@@ -49,11 +72,10 @@ jobs:
         working-directory: ./frontend
         run: yarn run lint
 
-#      - name: Run tests
-#        working-directory: ./frontend
-#        run: npm test
+      # - name: Run tests
+      #   working-directory: ./frontend
+      #   run: yarn run test
 
       - name: Build NextJS
         working-directory: ./frontend
         run: yarn run build
-
