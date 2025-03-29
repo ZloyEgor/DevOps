@@ -1,0 +1,35 @@
+@font-face {
+    font-family: Dihjauti-Regular;
+    src: url("../fonts/Dihjauti-Regular.otf") format('opentype');
+    font-style: normal;
+    font-weight: normal;
+}
+
+@font-face {
+    font-family: Dihjauti-Bold;
+    src: url("../fonts/Dihjauti-Bold.otf") format('opentype');
+    font-style: normal;
+    font-weight: normal;
+}
+
+@font-face {
+    font-family: Dihjauti-Italic;
+    src: url("../fonts/Dihjauti-Italic.otf") format('opentype');
+    font-style: normal;
+    font-weight: normal;
+}
+
+@font-face {
+    font-family: Dihjauti-BoldItalic;
+    src: url("../fonts/Dihjauti-BoldItalic.otf") format('opentype');
+    font-style: normal;
+    font-weight: normal;
+}
+
+* {
+    --font-regular: "Dihjauti-Regular", serif;
+    --font-bold: "Dihjauti-Bold", serif;
+    --font-italic: "Dihjauti-Italic", serif;
+    --font-bold-italic: "Dihjauti-BoldItalic", serif;
+}
+

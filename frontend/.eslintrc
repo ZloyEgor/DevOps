@@ -18,15 +18,17 @@
   },
   "plugins": ["unused-imports", "prettier"],
   "rules": {
-    "unused-imports/no-unused-imports": "error",
+    "unused-imports/no-unused-imports": "warn",
     "no-unused-vars": "warn",
     "no-console": "warn",
     "react/prop-types": "off",
     "semi": [2, "always"],
     "object-curly-spacing": [2, "always"],
-    "prettier/prettier": ["error", { "singleQuote": true, "tabWidth": 4 }],
+    "prettier/prettier": ["error", { "singleQuote": true, "tabWidth": 4, ""}],
     "indent": [0, "tab"],
     "endOfLine": "off",
-    "sort-imports": "error"
+    "sort-imports": "off",
+    "react/react-in-jsx-scope": "off",
+    "@typescript-eslint/no-explicit-any": "off"
   }
 }
