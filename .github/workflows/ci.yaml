@@ -11,6 +11,22 @@ jobs:
   build-backend:
     name: Backend build, checkstyle and tests
     runs-on: ubuntu-latest
+
+    services:
+      db:
+        image: postgres:15.2
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: cvetochey
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U test -d cvetochey"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -23,6 +39,10 @@ jobs:
 
       - name: Build and Test with Maven
         working-directory: ./backend
+        env:
+          DATABASE_HOST: db
+          DATABASE_LOGIN: test
+          DATABASE_PASSWORD: test
         run: mvn clean install
 
       - name: Run Checkstyle
@@ -56,4 +76,3 @@ jobs:
       - name: Build NextJS
         working-directory: ./frontend
         run: yarn run build
-
