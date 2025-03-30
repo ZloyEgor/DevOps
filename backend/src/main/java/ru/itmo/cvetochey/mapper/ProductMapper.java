@@ -6,12 +6,11 @@ import ru.itmo.cvetochey.dto.ProductDto;
 import ru.itmo.cvetochey.model.Product;
 
 @Mapper(componentModel = "spring")
-public abstract class ProductMapper {
-
-    @Mapping(target = "catalogId", source = "catalog.id")
-    public abstract ProductDto toDto(Product entity);
+public interface ProductMapper {
 
     @Mapping(target = "catalog", ignore = true)
-    public abstract Product toEntity(ProductDto dto);
+    Product toEntity(ProductDto dto);
 
+    @Mapping(target = "catalogId", source = "catalog.id")
+    ProductDto toDto(Product entity);
 }
