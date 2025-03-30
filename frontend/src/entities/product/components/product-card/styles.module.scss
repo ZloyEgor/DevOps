@@ -1,0 +1,44 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  width: 258px;
+
+
+  &:hover {
+    cursor: pointer;
+
+    .descriptionContainer {
+      background-color: var(--color-hover);
+    }
+  }
+}
+
+.title {
+  line-height: 28px;
+  font-family: var(--font-bold), serif;
+  font-size: var(--font-size-l);
+  margin-bottom: 8px;
+}
+
+.description {
+  font-size: var(--font-size-m);
+  line-height: 20px;
+  margin-bottom: 8px;
+}
+
+.descriptionContainer {
+  display: flex;
+  padding: 16px 8px;
+  flex-direction: column;
+  transition: all .15s ease;
+  height: 100%;
+}
+
+.price {
+  margin-top: auto;
+}
+
+.image {
+  object-fit: cover;
+  border: 1px solid grey;
+}

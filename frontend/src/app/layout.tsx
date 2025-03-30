@@ -5,6 +5,7 @@ import React from 'react';
 import { ConfigProvider } from '@/shared/config';
 import { BaseLayout } from '@/shared/components/base-layout';
 import { Header } from '@/widgets/header/header';
+import styles from './page.module.css';
 
 export const metadata: Metadata = {
     title: 'Create Next App',
@@ -21,7 +22,9 @@ export default function RootLayout({
             <body>
                 <AntdRegistry>
                     <ConfigProvider>
-                        <BaseLayout header={<Header />}>{children}</BaseLayout>
+                        <BaseLayout header={<Header />}>
+                            <div className={styles.wrapper}>{children}</div>
+                        </BaseLayout>
                     </ConfigProvider>
                 </AntdRegistry>
             </body>

@@ -6,3 +6,8 @@
         font-family: var(--font-regular), serif;
     }
 }
+
+::selection {
+    background: var(--color-select);
+    text-shadow: none;
+}
