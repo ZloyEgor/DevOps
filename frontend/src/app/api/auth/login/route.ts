@@ -1,10 +1,12 @@
-import type { NextApiRequest } from 'next';
 import { login } from '@/features/login';
 import { serialize } from 'cookie';
+import { NextRequest } from 'next/server';
 
-export async function POST(req: NextApiRequest) {
+export async function POST(req: NextRequest) {
     try {
-        const { email, password } = req.body;
+        const body = await req.json();
+
+        const { email, password } = body;
         const result = await login('credentials', { email, password });
 
         if (result) {
