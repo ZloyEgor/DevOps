@@ -1,7 +1,10 @@
 package ru.itmo.cvetochey.controller.impl;
 
 import java.util.List;
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -10,53 +13,76 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import ru.itmo.cvetochey.dto.ProductDto;
+import ru.itmo.cvetochey.mapper.ProductMapper;
+import ru.itmo.cvetochey.model.Catalog;
 import ru.itmo.cvetochey.model.Product;
+import ru.itmo.cvetochey.repository.CatalogRepository;
 import ru.itmo.cvetochey.repository.ProductRepository;
 
 @RestController
-@RequestMapping("/cvet-ochet/api/v1/product")
+@RequestMapping("/api/products")
+@RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 public class ProductController {
 
     private final ProductRepository productRepository;
+    private final CatalogRepository catalogRepository;
+    private final ProductMapper productMapper;
 
-    public ProductController(ProductRepository productRepository) {
-        this.productRepository = productRepository;
+    @GetMapping
+    public List<ProductDto> getAll() {
+        return productRepository.findAll().stream()
+                .map(productMapper::toDto)
+                .collect(Collectors.toList());
     }
 
-    @GetMapping("/get-all")
-    public List<Product> getAllProducts() {
-        return productRepository.findAll();
-    }
-
-    @GetMapping("/get/{id}")
-    public ResponseEntity<Product> getProductById(@PathVariable Long id) {
+    @GetMapping("/{id}")
+    public ResponseEntity<ProductDto> getOne(@PathVariable Long id) {
         return productRepository.findById(id)
+                .map(productMapper::toDto)
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.noContent().build());
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/create")
-    public Product createProduct(@RequestBody Product product) {
-        return productRepository.save(product);
+    @PostMapping
+    public ProductDto create(@RequestBody ProductDto dto) {
+        Product entity = productMapper.toEntity(dto);
+
+        // привязка к каталогу
+        if (dto.getCatalogId() != null) {
+            catalogRepository.findById(dto.getCatalogId()).ifPresent(entity::setCatalog);
+        }
+
+        Product saved = productRepository.save(entity);
+        return productMapper.toDto(saved);
     }
 
-    @PutMapping("/update/{id}")
-    public ResponseEntity<Product> updateProduct(@PathVariable Long id, @RequestBody Product updated) {
+    @PutMapping("/{id}")
+    public ResponseEntity<ProductDto> update(@PathVariable Long id, @RequestBody ProductDto dto) {
         return productRepository.findById(id)
-                .map(p -> {
-                    p.setName(updated.getName());
-                    p.setDescription(updated.getDescription());
-                    p.setPrice(updated.getPrice());
-                    p.setCatalog(updated.getCatalog());
-                    return ResponseEntity.ok(productRepository.save(p));
+                .map(entity -> {
+                    entity.setName(dto.getName());
+                    entity.setDescription(dto.getDescription());
+                    entity.setPrice(dto.getPrice());
+                    entity.setPictureUrl(dto.getPictureUrl());
+                    if (dto.getCatalogId() != null) {
+                        Catalog cat = catalogRepository.findById(dto.getCatalogId()).orElse(null);
+                        entity.setCatalog(cat);
+                    } else {
+                        entity.setCatalog(null);
+                    }
+                    productRepository.save(entity);
+                    return productMapper.toDto(entity);
                 })
-                .orElse(ResponseEntity.noContent().build());
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    @DeleteMapping("/delete/{id}")
-    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
         if (!productRepository.existsById(id)) {
-            return ResponseEntity.noContent().build();
+            return ResponseEntity.notFound().build();
         }
         productRepository.deleteById(id);
         return ResponseEntity.noContent().build();

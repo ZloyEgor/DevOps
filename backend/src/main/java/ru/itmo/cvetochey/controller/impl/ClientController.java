@@ -1,7 +1,10 @@
 package ru.itmo.cvetochey.controller.impl;
 
 import java.util.List;
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -10,51 +13,64 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import ru.itmo.cvetochey.dto.ClientCreateDto;
+import ru.itmo.cvetochey.dto.ClientDto;
+import ru.itmo.cvetochey.mapper.ClientMapper;
 import ru.itmo.cvetochey.model.Client;
 import ru.itmo.cvetochey.repository.ClientRepository;
 
 @RestController
-@RequestMapping("cvet-ochey/api/v1/client")
+@RequestMapping("/api/clients")
+@RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 public class ClientController {
 
     private final ClientRepository clientRepository;
+    private final ClientMapper clientMapper;
 
-    public ClientController(ClientRepository clientRepository) {
-        this.clientRepository = clientRepository;
+    @GetMapping
+    public List<ClientDto> getAll() {
+        return clientRepository.findAll().stream()
+                .map(clientMapper::toDto)
+                .collect(Collectors.toList());
     }
 
-    @GetMapping("/get-all")
-    public List<Client> getAllClients() {
-        return clientRepository.findAll();
-    }
-
-    @GetMapping("/get/{id}")
-    public ResponseEntity<Client> getUserById(@PathVariable Long id) {
+    @GetMapping("/{id}")
+    public ResponseEntity<ClientDto> getOne(@PathVariable Long id) {
         return clientRepository.findById(id)
+                .map(clientMapper::toDto)
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.noContent().build());
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/create")
-    public Client createClient(@RequestBody Client user) {
-        return clientRepository.save(user);
+    @PostMapping
+    public ClientDto create(@RequestBody ClientCreateDto dto) {
+        Client entity = clientMapper.toEntity(dto);
+        Client saved = clientRepository.save(entity);
+        return clientMapper.toDto(saved);
     }
 
-    @PutMapping("/update/{id}")
-    public ResponseEntity<Client> updateUser(@PathVariable Long id, @RequestBody Client updated) {
+    @PutMapping("/{id}")
+    public ResponseEntity<ClientDto> update(@PathVariable Long id, @RequestBody ClientCreateDto dto) {
         return clientRepository.findById(id)
-                .map(user -> {
-                    user.setUsername(updated.getUsername());
-                    user.setEmail(updated.getEmail());
-                    return ResponseEntity.ok(clientRepository.save(user));
+                .map(entity -> {
+                    entity.setEmail(dto.getEmail());
+                    entity.setUsername(dto.getUsername());
+                    if (dto.getPassword() != null) {
+                        entity.setPassword(dto.getPassword());
+                    }
+                    entity.setUserRole(dto.getUserRole());
+                    clientRepository.save(entity);
+                    return clientMapper.toDto(entity);
                 })
-                .orElse(ResponseEntity.noContent().build());
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    @DeleteMapping("/delete/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
         if (!clientRepository.existsById(id)) {
-            return ResponseEntity.noContent().build();
+            return ResponseEntity.notFound().build();
         }
         clientRepository.deleteById(id);
         return ResponseEntity.noContent().build();

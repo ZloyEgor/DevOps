@@ -1,63 +1,70 @@
 package ru.itmo.cvetochey.controller.impl;
 
 import java.util.List;
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
+import ru.itmo.cvetochey.dto.CatalogDto;
+import ru.itmo.cvetochey.mapper.CatalogMapper;
 import ru.itmo.cvetochey.model.Catalog;
+import ru.itmo.cvetochey.model.CatalogType;
 import ru.itmo.cvetochey.repository.CatalogRepository;
 
 @RestController
-@RequestMapping("cvet-ochey/api/v1/catalog")
+@CrossOrigin(origins = "*")
+@RequiredArgsConstructor
 public class CatalogController {
 
     private final CatalogRepository catalogRepository;
+    private final CatalogMapper catalogMapper;
 
-    public CatalogController(CatalogRepository catalogRepository) {
-        this.catalogRepository = catalogRepository;
+    public List<CatalogDto> getAll() {
+        return catalogRepository.findAll().stream()
+                .map(catalogMapper::toDto)
+                .collect(Collectors.toList());
     }
 
-    @GetMapping("/get-all")
-    public List<Catalog> getAllCatalogs() {
-        return catalogRepository.findAll();
-    }
-
-    @GetMapping("/get/{id}")
-    public ResponseEntity<Catalog> getCatalogById(@PathVariable Long id) {
+    public ResponseEntity<CatalogDto> getOne(Long id) {
         return catalogRepository.findById(id)
+                .map(catalogMapper::toDto)
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.noContent().build());
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/create")
-    public Catalog createCatalog(@RequestBody Catalog catalog) {
-        return catalogRepository.save(catalog);
+    public CatalogDto create(CatalogDto dto) {
+        Catalog catalog = catalogMapper.toEntity(dto);
+        Catalog saved = catalogRepository.save(catalog);
+        return catalogMapper.toDto(saved);
     }
 
-    @PutMapping("/update/{id}")
-    public ResponseEntity<Catalog> updateCatalog(@PathVariable Long id, @RequestBody Catalog updated) {
+    public ResponseEntity<CatalogDto> update(Long id, CatalogDto dto) {
         return catalogRepository.findById(id)
-                .map(catalog -> {
-                    catalog.setName(updated.getName());
-                    catalog.setDescription(updated.getDescription());
-                    return ResponseEntity.ok(catalogRepository.save(catalog));
+                .map(entity -> {
+                    entity.setName(dto.getName());
+                    entity.setDescription(dto.getDescription());
+                    entity.setCatalogType(dto.getCatalogType());
+                    catalogRepository.save(entity);
+                    return catalogMapper.toDto(entity);
                 })
-                .orElse(ResponseEntity.noContent().build());
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    @DeleteMapping("/delete/{id}")
-    public ResponseEntity<Void> deleteCatalog(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(Long id) {
         if (!catalogRepository.existsById(id)) {
-            return ResponseEntity.noContent().build();
+            return ResponseEntity.notFound().build();
         }
         catalogRepository.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    public List<CatalogDto> getByType(CatalogType type) {
+        return catalogRepository.findAll().stream()
+                .filter(c -> c.getCatalogType() == type)
+                .map(catalogMapper::toDto)
+                .collect(Collectors.toList());
     }
 
 }
