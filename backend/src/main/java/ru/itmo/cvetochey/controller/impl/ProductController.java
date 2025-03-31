@@ -21,8 +21,8 @@ import ru.itmo.cvetochey.repository.CatalogRepository;
 import ru.itmo.cvetochey.repository.ProductRepository;
 
 @RestController
-@RequestMapping("/api/products")
 @RequiredArgsConstructor
+@RequestMapping("/cvet-ochey/api/v1/products")
 @CrossOrigin(origins = "*")
 public class ProductController {
 
@@ -48,12 +48,9 @@ public class ProductController {
     @PostMapping
     public ProductDto create(@RequestBody ProductDto dto) {
         Product entity = productMapper.toEntity(dto);
-
-        // привязка к каталогу
         if (dto.getCatalogId() != null) {
             catalogRepository.findById(dto.getCatalogId()).ifPresent(entity::setCatalog);
         }
-
         Product saved = productRepository.save(entity);
         return productMapper.toDto(saved);
     }
