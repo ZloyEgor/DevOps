@@ -1,1 +1,6 @@
-export const catalogService = {};
+import { CatalogEntry } from '../model/catalog';
+
+export const catalogService = {
+    getCatalogs: (): Promise<CatalogEntry[]> =>
+        fetch('http://localhost:8080/cvet-ochey/api/v1/catalog').then((r) => r.json()),
+};

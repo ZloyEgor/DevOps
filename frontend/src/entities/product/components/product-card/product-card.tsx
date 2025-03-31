@@ -4,6 +4,7 @@ import styles from './styles.module.scss';
 import clsx from 'clsx';
 import { preparePrice } from '@/shared/utils/prepare-price';
 import { Product } from '@/entities/product';
+import mockPhoto from '@/shared/assets/mock/bouquet.jpg';
 import Image from 'next/image';
 
 export type CatalogItemCardProps = Props<
@@ -19,11 +20,11 @@ export const ProductCard: FC<CatalogItemCardProps> = ({
     withDescription = true,
     ...rest
 }) => {
-    const { imageUrl, name, price, description } = item;
+    const { name, price, description } = item;
 
     return (
         <div className={clsx(styles.card, className)} {...rest}>
-            <Image width={256} height={256} className={styles.image} src={imageUrl} alt={name} />
+            <Image width={256} height={256} className={styles.image} src={mockPhoto} alt={name} />
             <div className={styles.descriptionContainer}>
                 <span className={styles.title}>{name}</span>
                 {withDescription ? <span className={styles.description}>{description}</span> : null}

@@ -1,0 +1,23 @@
+.list {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.container {
+
+}
+
+.title {
+  cursor: pointer;
+  margin-bottom: 12px;
+  padding: 8px;
+  user-select: none;
+
+  transition: all .3s ease;
+
+  &:hover {
+    background-color: var(--color-hover);
+  }
+}
