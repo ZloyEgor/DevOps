@@ -4,7 +4,7 @@ import type { Metadata } from 'next';
 import React from 'react';
 import { ConfigProvider } from '@/shared/config';
 import { BaseLayout } from '@/shared/components/base-layout';
-import { Header } from '@/widgets/header/header';
+import { Header } from '@/widgets/header';
 import styles from './page.module.css';
 
 export const metadata: Metadata = {

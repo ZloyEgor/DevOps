@@ -1,16 +1,18 @@
 import { FC } from 'react';
-import { getCatalog } from '@/entities/catalog';
-import { ProductCard } from '@/entities/product';
+import { getCatalogs } from '@/entities/catalog';
 import styles from './catalog.module.scss';
+import { FlowerCatalog } from '@/widgets/flower-catalog';
 
 const Catalog: FC = async () => {
-    const catalog = await getCatalog();
-    if (!catalog.at(0)) return 'Каталог пуст';
+    const { catalogs } = await getCatalogs();
+    if (!catalogs) return 'Каталог пуст';
     return (
         <>
             <p className={styles.title}>Коллекция букетов</p>
             <div className={styles.list}>
-                {catalog.at(0)?.items.map((item) => <ProductCard key={item.id} item={item} />)}
+                {catalogs.map((item) => (
+                    <FlowerCatalog key={item.id} catalog={item} />
+                ))}
             </div>
         </>
     );
