@@ -23,8 +23,8 @@ import ru.itmo.cvetochey.repository.OrderRepository;
 import ru.itmo.cvetochey.repository.ProductRepository;
 
 @RestController
-@RequestMapping("/api/orders")
 @RequiredArgsConstructor
+@RequestMapping("/cvet-ochey/api/v1/orders")
 @CrossOrigin(origins = "*")
 public class OrderController {
 

@@ -20,8 +20,8 @@ import ru.itmo.cvetochey.model.Client;
 import ru.itmo.cvetochey.repository.ClientRepository;
 
 @RestController
-@RequestMapping("/api/clients")
 @RequiredArgsConstructor
+@RequestMapping("/cvet-ochey/api/v1/clients")
 @CrossOrigin(origins = "*")
 public class ClientController {
 
