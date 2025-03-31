@@ -27,8 +27,10 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/cvet-ochey/api/v1/login").permitAll()
-                        .requestMatchers("/cvet-ochey/api/v1/catalog/get-all").permitAll()
+                        .requestMatchers(
+                                "/cvet-ochey/api/v1/login",
+                                "/cvet-ochey/api/v1/catalog/get-all"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
