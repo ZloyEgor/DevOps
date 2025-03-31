@@ -3,7 +3,7 @@
   background-color: var(--color-background);
   color: var(--color-text);
   align-items: center;
-  padding: 12px;
+  padding: 16px 32px;
 }
 
 .logo {
@@ -18,4 +18,8 @@
 .text {
   font-family: var(--font-bold), serif;
   font-size: var(--font-size-xl);
+}
+
+.userAvatar {
+  margin-left: auto;
 }

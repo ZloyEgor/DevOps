@@ -5,5 +5,6 @@ export type CatalogEntry = {
     id: NumericId;
     name: string;
     description: string;
-    items: Product[];
+    catalogType: 'FLOWERS';
+    productDtos: Product[];
 };
