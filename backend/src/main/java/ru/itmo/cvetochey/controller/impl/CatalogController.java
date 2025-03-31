@@ -19,13 +19,14 @@ import ru.itmo.cvetochey.repository.CatalogRepository;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/cvet-ochey/api/v1/catalogs")
+@RequestMapping("/cvet-ochey/api/v1/catalog")
 @CrossOrigin(origins = "*")
 public class CatalogController {
 
     private final CatalogRepository catalogRepository;
     private final CatalogMapper catalogMapper;
 
+    @GetMapping("/get-all")
     public List<CatalogDto> getAll() {
         return catalogRepository.findAll().stream()
                 .map(catalogMapper::toDto)
