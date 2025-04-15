@@ -6,6 +6,7 @@
       community.docker.docker_image:
         name: vezon/cvetochey
         source: pull
+        force_source: true
 
     - name: Остановить контейнер, если он существует
       community.docker.docker_container:
