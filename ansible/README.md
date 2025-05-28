@@ -15,3 +15,11 @@
 ```bash
 ansible-playbook playbooks/deploy-frontend.yml
 ```
+
+## Docker multiplatform build
+```bash
+docker buildx build \
+  --platform linux/amd64,linux/arm64 \
+  -t vezon/cvetochey:latest \
+  --push .
+```
