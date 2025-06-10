@@ -1,0 +1,47 @@
+---
+- name: Copy compose-файлы из ./application и запустить контейнеры
+  hosts: servers
+  become: true
+  vars:
+    # куда на целевой ВМ кладём compose-файлы
+    target_dir: /opt/app
+
+    # автоматически соберём список всех compose-файлов
+    compose_files: >-
+      {{
+        lookup(
+          'fileglob',
+          playbook_dir + '/../application/docker-compose.*.yml',
+          wantlist=True
+        )
+        | map('basename')
+        | list
+      }}
+
+  tasks:
+    - name: Создать директорию на сервере
+      ansible.builtin.file:
+        path: "{{ target_dir }}"
+        state: directory
+        owner: itmo          # при желании сделай переменной
+        group: docker
+        mode: "0755"
+
+    - name: Копировать compose-файлы
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../application/{{ item }}"
+        dest: "{{ target_dir }}/{{ item }}"
+        owner: itmo
+        group: docker
+        mode: "0644"
+      loop: "{{ compose_files }}"
+
+    - name: docker compose pull   # вытягиваем новые образы
+      ansible.builtin.command:
+        cmd: docker compose -f "{{ target_dir }}/{{ item }}" pull
+      loop: "{{ compose_files }}"
+
+    - name: docker compose up -d  # запускаем/обновляем сервисы
+      ansible.builtin.command:
+        cmd: docker compose -f "{{ target_dir }}/{{ item }}" up -d
+      loop: "{{ compose_files }}"
