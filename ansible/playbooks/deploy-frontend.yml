@@ -1,0 +1,27 @@
+- name: Задеплоить Next.js фронтенд в контейнере
+  hosts: frontend
+  become: yes
+  tasks:
+    - name: Скачать Docker-образ
+      community.docker.docker_image:
+        name: vezon/cvetochey
+        source: pull
+        force_source: true
+
+    - name: Остановить контейнер, если он существует
+      community.docker.docker_container:
+        name: cvetochey-app
+        state: absent
+        force_kill: true
+
+    - name: Запустить контейнер
+      community.docker.docker_container:
+        name: cvetochey-app
+        image: vezon/cvetochey
+        state: started
+        restart_policy: always
+        platform: linux/amd64
+        ports:
+          - "3000:3000"
+        env:
+          HOST: "0.0.0.0"

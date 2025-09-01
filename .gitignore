@@ -1,4 +1,5 @@
 /.idea/
+k8s/manifests/secrets.yaml
 HELP.md
 target/
 !test-service/.mvn/wrapper/maven-wrapper.jar
