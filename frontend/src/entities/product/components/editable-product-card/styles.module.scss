@@ -55,6 +55,12 @@
     color: #2d5a27;
 }
 
+.adminActions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
 .editButton {
     background: #2196F3;
     color: white;
@@ -66,8 +72,34 @@
     border-radius: 4px;
     transition: all 0.2s ease;
 
-    &:hover {
+    &:hover:not(:disabled) {
         background: #1976D2;
+    }
+
+    &:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+    }
+}
+
+.deleteButton {
+    background: #f44336;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+
+    &:hover:not(:disabled) {
+        background: #d32f2f;
+    }
+
+    &:disabled {
+        background: #ccc;
+        cursor: not-allowed;
     }
 }
 

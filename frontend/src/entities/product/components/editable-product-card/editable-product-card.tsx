@@ -17,6 +17,7 @@ export type EditableProductCardProps = Props<
         withDescription?: boolean;
         showAddToCart?: boolean;
         onUpdate?: (product: Product) => void;
+        onDelete?: (productId: number) => void;
     },
     true,
     HTMLProps<HTMLDivElement>
@@ -29,6 +30,7 @@ export const EditableProductCard: FC<EditableProductCardProps> = ({
     withDescription = true,
     showAddToCart = true,
     onUpdate,
+    onDelete,
     ...rest
 }) => {
     const [isEditing, setIsEditing] = useState(false);
@@ -36,6 +38,7 @@ export const EditableProductCard: FC<EditableProductCardProps> = ({
     const [isAdded, setIsAdded] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     // Cart state
     const [cartItem, setCartItem] = useState<LocalCartItem | undefined>();
@@ -179,6 +182,32 @@ export const EditableProductCard: FC<EditableProductCardProps> = ({
         }
     };
 
+    const handleDelete = async () => {
+        const confirmed = window.confirm(
+            `Are you sure you want to delete "${item.name}"?\n\nThis action cannot be undone.`
+        );
+        
+        if (!confirmed) {
+            return;
+        }
+
+        setIsDeleting(true);
+        try {
+            await productService.deleteProduct(item.id);
+            
+            // Call parent delete handler if provided
+            if (onDelete) {
+                onDelete(item.id);
+            }
+        } catch (error) {
+            console.error('Failed to delete product:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Failed to delete product. Please try again.';
+            alert(errorMessage);
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
     return (
         <div className={clsx(styles.card, className)} {...rest}>
             <Image
@@ -238,13 +267,24 @@ export const EditableProductCard: FC<EditableProductCardProps> = ({
                         <div className={styles.titleContainer}>
                             <span className={styles.title}>{item.name}</span>
                             {isAdmin && (
-                                <button
-                                    onClick={handleEdit}
-                                    className={styles.editButton}
-                                    title="Edit product"
-                                >
-                                    Edit
-                                </button>
+                                <div className={styles.adminActions}>
+                                    <button
+                                        onClick={handleEdit}
+                                        className={styles.editButton}
+                                        title="Edit product"
+                                        disabled={isDeleting}
+                                    >
+                                        Edit
+                                    </button>
+                                    <button
+                                        onClick={handleDelete}
+                                        className={styles.deleteButton}
+                                        title="Delete product"
+                                        disabled={isDeleting}
+                                    >
+                                        {isDeleting ? 'Deleting...' : 'Delete'}
+                                    </button>
+                                </div>
                             )}
                         </div>
                         {withDescription && (

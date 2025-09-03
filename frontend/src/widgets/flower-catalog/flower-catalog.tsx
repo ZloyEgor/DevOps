@@ -27,12 +27,23 @@ export const FlowerCatalog: FC<FlowerCatalogProps> = ({ catalog }) => {
         );
     };
 
+    const handleProductDelete = (deletedProductId: number) => {
+        setCatalogProducts((prev) =>
+            prev.filter((product) => product.id !== deletedProductId)
+        );
+    };
+
     return (
         <details className={styles.container} open={isOpen} onClick={onClick}>
             <summary className={styles.title}>{name}</summary>
             <div className={styles.list} onClick={onListClick}>
                 {catalogProducts.map((item) => (
-                    <EditableProductCard key={item.id} item={item} onUpdate={handleProductUpdate} />
+                    <EditableProductCard 
+                        key={item.id} 
+                        item={item} 
+                        onUpdate={handleProductUpdate}
+                        onDelete={handleProductDelete}
+                    />
                 ))}
             </div>
         </details>

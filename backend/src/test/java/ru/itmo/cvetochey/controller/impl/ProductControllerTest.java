@@ -9,6 +9,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 import ru.itmo.cvetochey.dto.ProductDto;
+
+import java.util.Map;
 import ru.itmo.cvetochey.mapper.ProductMapper;
 import ru.itmo.cvetochey.model.Catalog;
 import ru.itmo.cvetochey.model.CatalogType;
@@ -226,7 +228,7 @@ class ProductControllerTest {
         when(productRepository.existsById(1L)).thenReturn(true);
 
         // When
-        ResponseEntity<Void> response = productController.delete(1L);
+        ResponseEntity<Map<String, String>> response = productController.delete(1L);
 
         // Then
         assertEquals(204, response.getStatusCodeValue());
@@ -241,7 +243,7 @@ class ProductControllerTest {
         when(productRepository.existsById(1L)).thenReturn(false);
 
         // When
-        ResponseEntity<Void> response = productController.delete(1L);
+        ResponseEntity<Map<String, String>> response = productController.delete(1L);
 
         // Then
         assertEquals(404, response.getStatusCodeValue());

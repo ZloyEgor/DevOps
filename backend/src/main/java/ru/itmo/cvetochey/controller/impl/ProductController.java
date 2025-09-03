@@ -1,6 +1,8 @@
 package ru.itmo.cvetochey.controller.impl;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -90,12 +92,20 @@ public class ProductController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Map<String, String>> delete(@PathVariable Long id) {
         if (!productRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
-        productRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
+        
+        try {
+            productRepository.deleteById(id);
+            return ResponseEntity.noContent().build();
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Cannot delete product");
+            errorResponse.put("message", "This product is referenced in existing orders and cannot be deleted");
+            return ResponseEntity.status(409).body(errorResponse); // 409 Conflict
+        }
     }
 
     @GetMapping("/catalog/{catalogId}")
