@@ -35,11 +35,14 @@ public class SecurityConfig {
                                 .requestMatchers(
                                         "/cvet-ochey/api/v1/auth/**",
                                         "/cvet-ochey/api/v1/catalog/**",
-                                        "/cvet-ochey/api/v1/products/**",
                                         "/actuator/**",
                                         "/swagger-ui/**",
                                         "/v3/api-docs/**"
                                 ).permitAll()
+                                .requestMatchers(HttpMethod.GET, "/cvet-ochey/api/v1/products/**").permitAll()
+                                .requestMatchers(HttpMethod.PUT, "/cvet-ochey/api/v1/products/**").hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.POST, "/cvet-ochey/api/v1/products/**").hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.DELETE, "/cvet-ochey/api/v1/products/**").hasRole("ADMIN")
                                 .requestMatchers("/cvet-ochey/api/v1/clients/**").hasRole("ADMIN")
                                 .anyRequest().authenticated()
                 )

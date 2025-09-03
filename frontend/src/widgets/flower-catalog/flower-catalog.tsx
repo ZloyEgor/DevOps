@@ -3,7 +3,7 @@ import React, { FC, useState } from 'react';
 import { CatalogEntry } from '@/entities/catalog';
 import { Props } from '@/shared/utils';
 import styles from './flower-catalog.module.scss';
-import { ProductCard } from '@/entities/product';
+import { EditableProductCard, Product } from '@/entities/product';
 
 export type FlowerCatalogProps = Props<{
     catalog: CatalogEntry;
@@ -11,6 +11,7 @@ export type FlowerCatalogProps = Props<{
 export const FlowerCatalog: FC<FlowerCatalogProps> = ({ catalog }) => {
     const { productDtos: products, name } = catalog;
     const [isOpen, setIsOpen] = useState(true);
+    const [catalogProducts, setCatalogProducts] = useState<Product[]>(products);
 
     const onClick: React.MouseEventHandler = () => {
         setIsOpen((prev) => !prev);
@@ -20,12 +21,24 @@ export const FlowerCatalog: FC<FlowerCatalogProps> = ({ catalog }) => {
         event.stopPropagation();
     };
 
+    const handleProductUpdate = (updatedProduct: Product) => {
+        setCatalogProducts(prev => 
+            prev.map(product => 
+                product.id === updatedProduct.id ? updatedProduct : product
+            )
+        );
+    };
+
     return (
         <details className={styles.container} open={isOpen} onClick={onClick}>
             <summary className={styles.title}>{name}</summary>
             <div className={styles.list} onClick={onListClick}>
-                {products.map((item) => (
-                    <ProductCard key={item.id} item={item} />
+                {catalogProducts.map((item) => (
+                    <EditableProductCard 
+                        key={item.id} 
+                        item={item} 
+                        onUpdate={handleProductUpdate}
+                    />
                 ))}
             </div>
         </details>

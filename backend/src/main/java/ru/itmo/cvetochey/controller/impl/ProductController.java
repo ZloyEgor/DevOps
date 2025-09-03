@@ -22,7 +22,6 @@ import ru.itmo.cvetochey.repository.ProductRepository;
 
 @RestController
 @RequestMapping("/cvet-ochey/api/v1/products")
-@CrossOrigin(origins = "*")
 public class ProductController {
 
     private final ProductRepository productRepository;

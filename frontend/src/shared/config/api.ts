@@ -15,6 +15,7 @@ export const API_CONFIG = {
         PRODUCTS: '/products',
         CLIENTS: '/clients',
         ORDERS: '/orders',
+        CART: '/cart',
         AUTH: {
             LOGIN: '/auth/login',
             LOGOUT: '/auth/logout',
