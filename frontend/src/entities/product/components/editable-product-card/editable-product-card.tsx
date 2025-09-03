@@ -1,8 +1,8 @@
 'use client';
 import { Props } from '@/shared/utils';
-import { FC, HTMLProps, useState } from 'react';
+import { FC, HTMLProps, useState, useEffect } from 'react';
 import { authService, User } from '@/entities/auth';
-import { cartService } from '@/entities/cart';
+import { cartService, LocalCartItem } from '@/entities/cart/api/cart-service';
 import { productService } from '@/entities/product/api/product-service';
 import styles from './styles.module.scss';
 import clsx from 'clsx';
@@ -36,6 +36,10 @@ export const EditableProductCard: FC<EditableProductCardProps> = ({
     const [isAdded, setIsAdded] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
+    
+    // Cart state
+    const [cartItem, setCartItem] = useState<LocalCartItem | undefined>();
+    const [cartQuantity, setCartQuantity] = useState(0);
 
     // Editable fields
     const [editName, setEditName] = useState(item.name);
@@ -44,6 +48,25 @@ export const EditableProductCard: FC<EditableProductCardProps> = ({
 
     const user: User | null = authService.getUser();
     const isAdmin = user?.userRole === 'ADMIN';
+
+    // Track cart state
+    useEffect(() => {
+        const updateCartState = () => {
+            const itemInCart = cartService.getCartItemByProductId(item.id);
+            setCartItem(itemInCart);
+            setCartQuantity(itemInCart?.quantity || 0);
+        };
+
+        updateCartState();
+
+        // Listen for cart changes
+        const handleCartChange = () => updateCartState();
+        window.addEventListener('cartStateChanged', handleCartChange);
+
+        return () => {
+            window.removeEventListener('cartStateChanged', handleCartChange);
+        };
+    }, [item.id]);
 
     const handleAddToCart = async (e: React.MouseEvent) => {
         e.preventDefault();
@@ -56,7 +79,7 @@ export const EditableProductCard: FC<EditableProductCardProps> = ({
 
         setIsAdding(true);
         try {
-            await cartService.addToCart(item.id);
+            cartService.addProductToCart(item);
             setIsAdded(true);
             setTimeout(() => setIsAdded(false), 2000);
         } catch (error) {
@@ -81,6 +104,40 @@ export const EditableProductCard: FC<EditableProductCardProps> = ({
         setEditDescription(item.description);
         setEditPrice(item.price.toString());
         setIsEditing(false);
+    };
+
+    const handleQuantityIncrease = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        if (cartItem) {
+            cartService.updateCartItemQuantity(cartItem.id, cartQuantity + 1);
+        } else {
+            cartService.addProductToCart(item);
+        }
+    };
+
+    const handleQuantityDecrease = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        if (cartItem && cartQuantity > 1) {
+            cartService.updateCartItemQuantity(cartItem.id, cartQuantity - 1);
+        } else if (cartItem) {
+            cartService.removeFromCart(cartItem.id);
+        }
+    };
+
+    const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const newQuantity = parseInt(e.target.value) || 0;
+        if (cartItem && newQuantity > 0) {
+            cartService.updateCartItemQuantity(cartItem.id, newQuantity);
+        } else if (cartItem && newQuantity === 0) {
+            cartService.removeFromCart(cartItem.id);
+        }
     };
 
     const handleSave = async (e: React.MouseEvent) => {
@@ -195,16 +252,40 @@ export const EditableProductCard: FC<EditableProductCardProps> = ({
                         )}
                         <span className={styles.price}>{preparePrice(item.price)}</span>
                         {showAddToCart && (
-                            <button
-                                onClick={handleAddToCart}
-                                disabled={isAdding}
-                                className={clsx(styles.addToCartButton, {
-                                    [styles.adding]: isAdding,
-                                    [styles.added]: isAdded,
-                                })}
-                            >
-                                {isAdding ? 'Добавляем...' : isAdded ? 'Добавлено!' : 'В корзину'}
-                            </button>
+                            cartQuantity > 0 ? (
+                                <div className={styles.quantityControls}>
+                                    <button
+                                        onClick={handleQuantityDecrease}
+                                        className={styles.quantityButton}
+                                    >
+                                        -
+                                    </button>
+                                    <input
+                                        type="number"
+                                        value={cartQuantity}
+                                        onChange={handleQuantityChange}
+                                        className={styles.quantityInput}
+                                        min="0"
+                                    />
+                                    <button
+                                        onClick={handleQuantityIncrease}
+                                        className={styles.quantityButton}
+                                    >
+                                        +
+                                    </button>
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={handleAddToCart}
+                                    disabled={isAdding}
+                                    className={clsx(styles.addToCartButton, {
+                                        [styles.adding]: isAdding,
+                                        [styles.added]: isAdded,
+                                    })}
+                                >
+                                    {isAdding ? 'Добавляем...' : isAdded ? 'Добавлено!' : 'В корзину'}
+                                </button>
+                            )
                         )}
                     </>
                 )}

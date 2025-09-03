@@ -183,6 +183,59 @@
     }
 }
 
+.quantityControls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.quantityButton {
+    width: 32px;
+    height: 32px;
+    background-color: #2196F3;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+        background-color: #1976D2;
+    }
+}
+
+.quantityInput {
+    width: 60px;
+    height: 32px;
+    text-align: center;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+
+    &:focus {
+        outline: none;
+        border-color: #2196F3;
+    }
+
+    /* Hide spinner arrows */
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    &[type=number] {
+        -moz-appearance: textfield;
+    }
+}
+
 .successPopup {
     position: absolute;
     top: 10px;

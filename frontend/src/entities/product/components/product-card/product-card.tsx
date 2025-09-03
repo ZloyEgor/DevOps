@@ -40,7 +40,7 @@ export const ProductCard: FC<CatalogItemCardProps> = ({
 
         setIsAdding(true);
         try {
-            await cartService.addToCart(item.id);
+            cartService.addProductToCart(item);
             setIsAdded(true);
             setTimeout(() => setIsAdded(false), 2000); // Reset after 2 seconds
         } catch (error) {
