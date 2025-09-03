@@ -2,13 +2,14 @@ package ru.itmo.cvetochey.controller.impl;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.itmo.cvetochey.dto.CatalogDto;
@@ -18,13 +19,17 @@ import ru.itmo.cvetochey.model.CatalogType;
 import ru.itmo.cvetochey.repository.CatalogRepository;
 
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/cvet-ochey/api/v1/catalog")
 @CrossOrigin(origins = "*")
 public class CatalogController {
 
     private final CatalogRepository catalogRepository;
     private final CatalogMapper catalogMapper;
+
+    public CatalogController(CatalogRepository catalogRepository, CatalogMapper catalogMapper) {
+        this.catalogRepository = catalogRepository;
+        this.catalogMapper = catalogMapper;
+    }
 
     @GetMapping
     public List<CatalogDto> getAll() {
@@ -34,7 +39,7 @@ public class CatalogController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CatalogDto> getOne(Long id) {
+    public ResponseEntity<CatalogDto> getOne(@PathVariable Long id) {
         return catalogRepository.findById(id)
                 .map(catalogMapper::toDto)
                 .map(ResponseEntity::ok)
@@ -42,14 +47,14 @@ public class CatalogController {
     }
 
     @PostMapping
-    public CatalogDto create(CatalogDto dto) {
+    public ResponseEntity<CatalogDto> create(@RequestBody CatalogDto dto) {
         Catalog catalog = catalogMapper.toEntity(dto);
         Catalog saved = catalogRepository.save(catalog);
-        return catalogMapper.toDto(saved);
+        return ResponseEntity.ok(catalogMapper.toDto(saved));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<CatalogDto> update(Long id, CatalogDto dto) {
+    public ResponseEntity<CatalogDto> update(@PathVariable Long id, @RequestBody CatalogDto dto) {
         return catalogRepository.findById(id)
                 .map(entity -> {
                     entity.setName(dto.getName());
@@ -63,7 +68,7 @@ public class CatalogController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(Long id) {
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
         if (!catalogRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
@@ -72,9 +77,8 @@ public class CatalogController {
     }
 
     @GetMapping("/byType/{type}")
-    public List<CatalogDto> getByType(CatalogType type) {
-        return catalogRepository.findAll().stream()
-                .filter(c -> c.getCatalogType() == type)
+    public List<CatalogDto> getByType(@PathVariable CatalogType type) {
+        return catalogRepository.findByCatalogType(type).stream()
                 .map(catalogMapper::toDto)
                 .collect(Collectors.toList());
     }
