@@ -12,7 +12,8 @@ services:
       - "5432:5432"
 
   backend:
-    image: nesterrovv/cvet-ochey:1.0
+    # image: nesterrovv/cvet-ochey:1.0
+    build: . 
     container_name: cvet-ochey-backend
     depends_on:
       - db

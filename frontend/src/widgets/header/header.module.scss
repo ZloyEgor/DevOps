@@ -20,6 +20,74 @@
   font-size: var(--font-size-xl);
 }
 
+.userSection {
+  margin-left: auto;
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.username {
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.userActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.userLink {
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+}
+
+.logoutButton {
+  background: none;
+  border: 1px solid var(--color-text);
+  color: var(--color-text);
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+  
+  &:hover {
+    background-color: var(--color-text);
+    color: var(--color-background);
+  }
+}
+
+.authLinks {
+  display: flex;
+  align-items: center;
+}
+
+.loginLink {
+  color: var(--color-text);
+  text-decoration: none;
+  padding: 8px 16px;
+  border: 1px solid var(--color-text);
+  border-radius: 4px;
+  transition: all 0.2s;
+  
+  &:hover {
+    background-color: var(--color-text);
+    color: var(--color-background);
+  }
+}
+
 .userAvatar {
   margin-left: auto;
 }
