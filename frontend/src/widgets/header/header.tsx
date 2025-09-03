@@ -23,19 +23,28 @@ export const Header: FC<HeaderProps> = ({ className, ...rest }) => {
             setIsAuthenticated(authenticated);
             if (authenticated) {
                 setUser(authService.getUser());
+            } else {
+                setUser(null);
             }
         };
 
         checkAuth();
-        // Check auth status periodically or on window focus
+
+        // Listen for auth state changes
+        const handleAuthChange = () => checkAuth();
+
         window.addEventListener('focus', checkAuth);
-        return () => window.removeEventListener('focus', checkAuth);
+        window.addEventListener('authStateChanged', handleAuthChange);
+
+        return () => {
+            window.removeEventListener('focus', checkAuth);
+            window.removeEventListener('authStateChanged', handleAuthChange);
+        };
     }, []);
 
     const handleLogout = async () => {
         await authService.logout();
-        setUser(null);
-        setIsAuthenticated(false);
+        // No need to manually update state - the authStateChanged event will handle it
         router.push('/');
     };
 
@@ -51,7 +60,12 @@ export const Header: FC<HeaderProps> = ({ className, ...rest }) => {
                         <span className={styles.username}>{user.username}</span>
                         <div className={styles.userActions}>
                             <Link href="/user" className={styles.userLink}>
-                                <Image src={userLogoSrc} alt="Страница пользователя" width={32} height={32} />
+                                <Image
+                                    src={userLogoSrc}
+                                    alt="Страница пользователя"
+                                    width={32}
+                                    height={32}
+                                />
                             </Link>
                             <button onClick={handleLogout} className={styles.logoutButton}>
                                 Выйти
