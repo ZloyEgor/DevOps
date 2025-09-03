@@ -74,7 +74,7 @@ export const Header: FC<HeaderProps> = ({ className, ...rest }) => {
                         )}
                     </Link>
                 )}
-                
+
                 {isAuthenticated && user ? (
                     <div className={styles.userInfo}>
                         <div className={styles.userDetails}>

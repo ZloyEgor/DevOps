@@ -3,7 +3,7 @@ import { CatalogEntry } from '../model/catalog';
 
 export const catalogService = {
     getCatalogs: (): Promise<CatalogEntry[]> =>
-        fetch(`${API_CONFIG.FULL_API_URL}${API_CONFIG.ENDPOINTS.CATALOG}`, { 
+        fetch(`${API_CONFIG.FULL_API_URL}${API_CONFIG.ENDPOINTS.CATALOG}`, {
             cache: 'no-store',
             headers: {
                 'Content-Type': 'application/json',

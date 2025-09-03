@@ -1,6 +1,6 @@
 'use client';
 import { Props } from '@/shared/utils';
-import { FC, HTMLProps, useState, useEffect } from 'react';
+import React, { FC, HTMLProps, useState, useEffect } from 'react';
 import { authService, User } from '@/entities/auth';
 import { cartService, LocalCartItem } from '@/entities/cart/api/cart-service';
 import { productService } from '@/entities/product/api/product-service';
@@ -36,7 +36,7 @@ export const EditableProductCard: FC<EditableProductCardProps> = ({
     const [isAdded, setIsAdded] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
-    
+
     // Cart state
     const [cartItem, setCartItem] = useState<LocalCartItem | undefined>();
     const [cartQuantity, setCartQuantity] = useState(0);
@@ -109,7 +109,7 @@ export const EditableProductCard: FC<EditableProductCardProps> = ({
     const handleQuantityIncrease = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        
+
         if (cartItem) {
             cartService.updateCartItemQuantity(cartItem.id, cartQuantity + 1);
         } else {
@@ -120,7 +120,7 @@ export const EditableProductCard: FC<EditableProductCardProps> = ({
     const handleQuantityDecrease = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        
+
         if (cartItem && cartQuantity > 1) {
             cartService.updateCartItemQuantity(cartItem.id, cartQuantity - 1);
         } else if (cartItem) {
@@ -131,7 +131,7 @@ export const EditableProductCard: FC<EditableProductCardProps> = ({
     const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault();
         e.stopPropagation();
-        
+
         const newQuantity = parseInt(e.target.value) || 0;
         if (cartItem && newQuantity > 0) {
             cartService.updateCartItemQuantity(cartItem.id, newQuantity);
@@ -251,8 +251,8 @@ export const EditableProductCard: FC<EditableProductCardProps> = ({
                             <span className={styles.description}>{item.description}</span>
                         )}
                         <span className={styles.price}>{preparePrice(item.price)}</span>
-                        {showAddToCart && (
-                            cartQuantity > 0 ? (
+                        {showAddToCart &&
+                            (cartQuantity > 0 ? (
                                 <div className={styles.quantityControls}>
                                     <button
                                         onClick={handleQuantityDecrease}
@@ -283,10 +283,13 @@ export const EditableProductCard: FC<EditableProductCardProps> = ({
                                         [styles.added]: isAdded,
                                     })}
                                 >
-                                    {isAdding ? 'Добавляем...' : isAdded ? 'Добавлено!' : 'В корзину'}
+                                    {isAdding
+                                        ? 'Добавляем...'
+                                        : isAdded
+                                          ? 'Добавлено!'
+                                          : 'В корзину'}
                                 </button>
-                            )
-                        )}
+                            ))}
                     </>
                 )}
                 {children}

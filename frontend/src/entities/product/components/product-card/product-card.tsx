@@ -1,6 +1,6 @@
 'use client';
 import { Props } from '@/shared/utils';
-import { FC, HTMLProps, useState } from 'react';
+import React, { FC, HTMLProps, useState } from 'react';
 import { authService } from '@/entities/auth';
 import { cartService } from '@/entities/cart';
 import styles from './styles.module.scss';

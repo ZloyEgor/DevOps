@@ -75,10 +75,7 @@ const CartPage: FC = () => {
                 </div>
                 <div className={styles.emptyCart}>
                     <p>Your cart is empty</p>
-                    <button
-                        onClick={() => router.push('/catalog')}
-                        className={styles.shopButton}
-                    >
+                    <button onClick={() => router.push('/catalog')} className={styles.shopButton}>
                         Continue Shopping
                     </button>
                 </div>
@@ -108,8 +105,12 @@ const CartPage: FC = () => {
                             />
                             <div className={styles.productInfo}>
                                 <h3 className={styles.productName}>{item.product.name}</h3>
-                                <p className={styles.productDescription}>{item.product.description}</p>
-                                <div className={styles.productPrice}>{preparePrice(item.product.price)} each</div>
+                                <p className={styles.productDescription}>
+                                    {item.product.description}
+                                </p>
+                                <div className={styles.productPrice}>
+                                    {preparePrice(item.product.price)} each
+                                </div>
                             </div>
                             <div className={styles.quantityControls}>
                                 <button
@@ -121,7 +122,9 @@ const CartPage: FC = () => {
                                 <input
                                     type="number"
                                     value={item.quantity}
-                                    onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value) || 0)}
+                                    onChange={(e) =>
+                                        handleQuantityChange(item.id, parseInt(e.target.value) || 0)
+                                    }
                                     className={styles.quantityInput}
                                     min="0"
                                 />
@@ -147,10 +150,7 @@ const CartPage: FC = () => {
                 </div>
 
                 <div className={styles.cartActions}>
-                    <button
-                        onClick={handleClearCart}
-                        className={styles.clearButton}
-                    >
+                    <button onClick={handleClearCart} className={styles.clearButton}>
                         Clear Cart
                     </button>
                     <button

@@ -22,10 +22,8 @@ export const FlowerCatalog: FC<FlowerCatalogProps> = ({ catalog }) => {
     };
 
     const handleProductUpdate = (updatedProduct: Product) => {
-        setCatalogProducts(prev => 
-            prev.map(product => 
-                product.id === updatedProduct.id ? updatedProduct : product
-            )
+        setCatalogProducts((prev) =>
+            prev.map((product) => (product.id === updatedProduct.id ? updatedProduct : product))
         );
     };
 
@@ -34,11 +32,7 @@ export const FlowerCatalog: FC<FlowerCatalogProps> = ({ catalog }) => {
             <summary className={styles.title}>{name}</summary>
             <div className={styles.list} onClick={onListClick}>
                 {catalogProducts.map((item) => (
-                    <EditableProductCard 
-                        key={item.id} 
-                        item={item} 
-                        onUpdate={handleProductUpdate}
-                    />
+                    <EditableProductCard key={item.id} item={item} onUpdate={handleProductUpdate} />
                 ))}
             </div>
         </details>
