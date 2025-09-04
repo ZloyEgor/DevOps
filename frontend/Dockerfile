@@ -15,8 +15,10 @@ WORKDIR /app
 
 # Install dependencies based on the preferred package manager
 COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* .npmrc* ./
-# Enable pnpm
+# Enable pnpm and configure registry
 RUN corepack enable pnpm
+RUN pnpm config set registry https://registry.npmjs.org/
+RUN npm config set registry https://registry.npmjs.org/
 
 RUN \
   if [ -f pnpm-lock.yaml ]; then pnpm i --frozen-lockfile; \
@@ -42,8 +44,9 @@ ENV NODE_OPTIONS="--max_old_space_size=1536 --max_semi_space_size=64"
 ENV NEXT_WEBPACK_USEPOLLING=false
 ENV NEXT_WEBPACK_WATCHOPTIONS_IGNORED="node_modules"
 
-# Enable pnpm for build stage
+# Enable pnpm for build stage and configure registry
 RUN corepack enable pnpm
+RUN pnpm config set registry https://registry.npmjs.org/
 
 RUN \
   if [ -f pnpm-lock.yaml ]; then pnpm run build; \
