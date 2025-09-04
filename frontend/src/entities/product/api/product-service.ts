@@ -93,19 +93,21 @@ class ProductService {
         // No content expected from successful DELETE request (204)
     }
 
-    async deleteProduct(productId: number): Promise<void> {
+    async createProduct(productData: Omit<Product, 'id'>): Promise<Product> {
         const token = authService.getToken();
         if (!token) {
             throw new Error('Authentication required');
         }
 
         const response = await fetch(
-            `${API_CONFIG.FULL_API_URL}${API_CONFIG.ENDPOINTS.PRODUCTS}/${productId}`,
+            `${API_CONFIG.FULL_API_URL}${API_CONFIG.ENDPOINTS.PRODUCTS}`,
             {
-                method: 'DELETE',
+                method: 'POST',
                 headers: {
+                    'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,
                 },
+                body: JSON.stringify(productData),
             }
         );
 
@@ -113,18 +115,14 @@ class ProductService {
             if (response.status === 401) {
                 throw new Error('Unauthorized: Admin access required');
             }
-            if (response.status === 404) {
-                throw new Error('Product not found');
-            }
-            if (response.status === 409) {
-                // Handle foreign key constraint violation
+            if (response.status === 400) {
                 const errorData = await response.json();
-                throw new Error(errorData.message || 'Cannot delete product - it is referenced by existing orders');
+                throw new Error(errorData.message || 'Invalid product data');
             }
-            throw new Error('Failed to delete product');
+            throw new Error('Failed to create product');
         }
 
-        // No content expected from DELETE request
+        return response.json();
     }
 }
 

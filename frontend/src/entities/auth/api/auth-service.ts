@@ -112,6 +112,11 @@ class AuthService {
         return !!this.getToken();
     }
 
+    isAdmin(): boolean {
+        const user = this.getUser();
+        return user && user.userRole === 'ADMIN';
+    }
+
     getAuthHeaders(): Record<string, string> {
         const token = this.getToken();
         return token ? { Authorization: `Bearer ${token}` } : {};
