@@ -1,0 +1,9 @@
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://YOUR_PROMETHEUS_EXTERNAL_IP:9090  # Replace with actual Prometheus external IP
+    isDefault: true
+    editable: true

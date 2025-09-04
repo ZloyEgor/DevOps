@@ -1,0 +1,76 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: load-test-script
+  namespace: cvetochey
+data:
+  load-test.js: |
+    import http from 'k6/http';
+    import { check, sleep } from 'k6';
+    import { Rate } from 'k6/metrics';
+
+    export let errorRate = new Rate('errors');
+
+    export let options = {
+      stages: [
+        { duration: '2m', target: 10 }, // Ramp up to 10 users
+        { duration: '5m', target: 10 }, // Stay at 10 users
+        { duration: '2m', target: 20 }, // Ramp up to 20 users
+        { duration: '5m', target: 20 }, // Stay at 20 users
+        { duration: '2m', target: 0 },  // Ramp down
+      ],
+      thresholds: {
+        http_req_duration: ['p(95)<500'], // 95% of requests must complete below 500ms
+        errors: ['rate<0.1'], // Error rate must be below 10%
+      },
+    };
+
+    const BASE_URL = 'http://backend-service.cvetochey.svc.cluster.local:8080';
+
+    export default function () {
+      // Test health endpoint
+      let healthResponse = http.get(`${BASE_URL}/actuator/health`);
+      check(healthResponse, {
+        'health check status is 200': (r) => r.status === 200,
+      }) || errorRate.add(1);
+
+      // Test API endpoints
+      let apiResponse = http.get(`${BASE_URL}/api/catalogs`);
+      check(apiResponse, {
+        'api response status is 200': (r) => r.status === 200,
+      }) || errorRate.add(1);
+
+      // Test products endpoint
+      let productsResponse = http.get(`${BASE_URL}/api/products`);
+      check(productsResponse, {
+        'products response status is 200': (r) => r.status === 200,
+      }) || errorRate.add(1);
+
+      sleep(1);
+    }
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: load-test
+  namespace: cvetochey
+spec:
+  containers:
+  - name: k6
+    image: grafana/k6:latest
+    command: ['k6', 'run', '/scripts/load-test.js']
+    volumeMounts:
+    - name: script-volume
+      mountPath: /scripts
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "256Mi"
+        cpu: "200m"
+  volumes:
+  - name: script-volume
+    configMap:
+      name: load-test-script
+  restartPolicy: Never
