@@ -185,6 +185,7 @@
 }
 
 .addToCartButton {
+    width: 100%;
     padding: 12px 24px;
     background-color: #4CAF50;
     color: white;
@@ -217,7 +218,9 @@
 
 .quantityControls {
     display: flex;
+    width: 100%;
     align-items: center;
+    justify-content: space-evenly;
     gap: 8px;
     margin-top: 8px;
 }
@@ -298,4 +301,13 @@
         opacity: 1;
         transform: translateX(0);
     }
+}
+
+.cartSection {
+    display: flex;
+    width: 100%;
+    align-items: stretch;
+    justify-content: space-between;
+    margin-top: auto; /* Push to bottom of card */
+    padding-top: 8px;
 }

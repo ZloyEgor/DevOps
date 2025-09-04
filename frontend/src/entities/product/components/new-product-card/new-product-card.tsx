@@ -91,24 +91,6 @@ export const NewProductCard: FC<NewProductCardProps> = ({ catalogId, onCancel, o
                         className={styles.nameInput}
                         disabled={isCreating}
                     />
-                    <div className={styles.actions}>
-                        <button
-                            onClick={handleCreate}
-                            className={styles.saveButton}
-                            disabled={isCreating}
-                            title="Create product"
-                        >
-                            {isCreating ? 'Creating...' : '✓ Create'}
-                        </button>
-                        <button
-                            onClick={handleCancel}
-                            className={styles.cancelButton}
-                            disabled={isCreating}
-                            title="Cancel"
-                        >
-                            ✕ Cancel
-                        </button>
-                    </div>
                 </div>
 
                 <textarea
@@ -143,6 +125,25 @@ export const NewProductCard: FC<NewProductCardProps> = ({ catalogId, onCancel, o
 
                 <div className={styles.footer}>
                     <small className={styles.hint}>* Required fields</small>
+                </div>
+
+                <div className={styles.actions}>
+                    <button
+                        onClick={handleCreate}
+                        className={styles.saveButton}
+                        disabled={isCreating}
+                        title="Create product"
+                    >
+                        {isCreating ? 'Creating...' : '✓ Create'}
+                    </button>
+                    <button
+                        onClick={handleCancel}
+                        className={styles.cancelButton}
+                        disabled={isCreating}
+                        title="Cancel"
+                    >
+                        ✕ Cancel
+                    </button>
                 </div>
             </div>
 

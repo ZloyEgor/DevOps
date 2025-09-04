@@ -186,7 +186,7 @@ export const EditableProductCard: FC<EditableProductCardProps> = ({
         const confirmed = window.confirm(
             `Are you sure you want to delete "${item.name}"?\n\nThis action cannot be undone.`
         );
-        
+
         if (!confirmed) {
             return;
         }
@@ -194,14 +194,17 @@ export const EditableProductCard: FC<EditableProductCardProps> = ({
         setIsDeleting(true);
         try {
             await productService.deleteProduct(item.id);
-            
+
             // Call parent delete handler if provided
             if (onDelete) {
                 onDelete(item.id);
             }
         } catch (error) {
             console.error('Failed to delete product:', error);
-            const errorMessage = error instanceof Error ? error.message : 'Failed to delete product. Please try again.';
+            const errorMessage =
+                error instanceof Error
+                    ? error.message
+                    : 'Failed to delete product. Please try again.';
             alert(errorMessage);
         } finally {
             setIsDeleting(false);
@@ -291,49 +294,51 @@ export const EditableProductCard: FC<EditableProductCardProps> = ({
                             <span className={styles.description}>{item.description}</span>
                         )}
                         <span className={styles.price}>{preparePrice(item.price)}</span>
-                        {showAddToCart &&
-                            (cartQuantity > 0 ? (
-                                <div className={styles.quantityControls}>
-                                    <button
-                                        onClick={handleQuantityDecrease}
-                                        className={styles.quantityButton}
-                                    >
-                                        -
-                                    </button>
-                                    <input
-                                        type="number"
-                                        value={cartQuantity}
-                                        onChange={handleQuantityChange}
-                                        className={styles.quantityInput}
-                                        min="0"
-                                    />
-                                    <button
-                                        onClick={handleQuantityIncrease}
-                                        className={styles.quantityButton}
-                                    >
-                                        +
-                                    </button>
-                                </div>
-                            ) : (
-                                <button
-                                    onClick={handleAddToCart}
-                                    disabled={isAdding}
-                                    className={clsx(styles.addToCartButton, {
-                                        [styles.adding]: isAdding,
-                                        [styles.added]: isAdded,
-                                    })}
-                                >
-                                    {isAdding
-                                        ? 'Добавляем...'
-                                        : isAdded
-                                          ? 'Добавлено!'
-                                          : 'В корзину'}
-                                </button>
-                            ))}
                     </>
                 )}
                 {children}
             </div>
+
+            {/* Cart Controls at Bottom */}
+            {showAddToCart && !isEditing && (
+                <div className={styles.cartSection}>
+                    {cartQuantity > 0 ? (
+                        <div className={styles.quantityControls}>
+                            <button
+                                onClick={handleQuantityDecrease}
+                                className={styles.quantityButton}
+                            >
+                                -
+                            </button>
+                            <input
+                                type="number"
+                                value={cartQuantity}
+                                onChange={handleQuantityChange}
+                                className={styles.quantityInput}
+                                min="0"
+                            />
+                            <button
+                                onClick={handleQuantityIncrease}
+                                className={styles.quantityButton}
+                            >
+                                +
+                            </button>
+                        </div>
+                    ) : (
+                        <button
+                            onClick={handleAddToCart}
+                            disabled={isAdding}
+                            className={clsx(styles.addToCartButton, {
+                                [styles.adding]: isAdding,
+                                [styles.added]: isAdded,
+                            })}
+                        >
+                            {isAdding ? 'Добавляем...' : isAdded ? 'Добавлено!' : 'В корзину'}
+                        </button>
+                    )}
+                </div>
+            )}
+
             {showSuccess && (
                 <div className={styles.successPopup}>Product updated successfully!</div>
             )}
