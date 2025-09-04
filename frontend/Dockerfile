@@ -13,15 +13,22 @@ FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
+# Enable pnpm and configure registry BEFORE copying files
+RUN corepack enable pnpm
+RUN pnpm config set registry https://registry.npmjs.org/
+RUN npm config set registry https://registry.npmjs.org/
+
+# Set environment variables to force registry
+ENV npm_config_registry=https://registry.npmjs.org/
+ENV PNPM_REGISTRY=https://registry.npmjs.org/
+
 # Install dependencies based on the preferred package manager
 COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* .npmrc* ./
-# Enable pnpm
-RUN corepack enable pnpm
 
 RUN \
-  if [ -f pnpm-lock.yaml ]; then pnpm i --frozen-lockfile; \
-  elif [ -f yarn.lock ]; then yarn --frozen-lockfile; \
-  elif [ -f package-lock.json ]; then npm ci; \
+  if [ -f pnpm-lock.yaml ]; then pnpm i --frozen-lockfile --registry https://registry.npmjs.org/; \
+  elif [ -f yarn.lock ]; then yarn --frozen-lockfile --registry https://registry.npmjs.org/; \
+  elif [ -f package-lock.json ]; then npm ci --registry https://registry.npmjs.org/; \
   else echo "Lockfile not found." && exit 1; \
   fi
 
@@ -42,8 +49,13 @@ ENV NODE_OPTIONS="--max_old_space_size=1536 --max_semi_space_size=64"
 ENV NEXT_WEBPACK_USEPOLLING=false
 ENV NEXT_WEBPACK_WATCHOPTIONS_IGNORED="node_modules"
 
-# Enable pnpm for build stage
+# Enable pnpm for build stage and configure registry
 RUN corepack enable pnpm
+RUN pnpm config set registry https://registry.npmjs.org/
+
+# Set environment variables to force registry
+ENV npm_config_registry=https://registry.npmjs.org/
+ENV PNPM_REGISTRY=https://registry.npmjs.org/
 
 RUN \
   if [ -f pnpm-lock.yaml ]; then pnpm run build; \

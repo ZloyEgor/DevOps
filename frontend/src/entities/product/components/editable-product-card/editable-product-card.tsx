@@ -195,7 +195,6 @@ export const EditableProductCard: FC<EditableProductCardProps> = ({
         try {
             await productService.deleteProduct(item.id);
 
-            // Call parent delete handler if provided
             if (onDelete) {
                 onDelete(item.id);
             }

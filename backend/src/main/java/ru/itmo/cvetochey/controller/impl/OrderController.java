@@ -27,126 +27,126 @@ import ru.itmo.cvetochey.repository.ProductRepository;
 @CrossOrigin(origins = "*")
 public class OrderController {
 
-    private final OrderRepository orderRepository;
-    private final ClientRepository clientRepository;
-    private final ProductRepository productRepository;
-    private final OrderMapper orderMapper;
+  private final OrderRepository orderRepository;
+  private final ClientRepository clientRepository;
+  private final ProductRepository productRepository;
+  private final OrderMapper orderMapper;
 
-    public OrderController(OrderRepository orderRepository, 
-                          ClientRepository clientRepository,
-                          ProductRepository productRepository,
-                          OrderMapper orderMapper) {
-        this.orderRepository = orderRepository;
-        this.clientRepository = clientRepository;
-        this.productRepository = productRepository;
-        this.orderMapper = orderMapper;
+  public OrderController(
+      OrderRepository orderRepository,
+      ClientRepository clientRepository,
+      ProductRepository productRepository,
+      OrderMapper orderMapper) {
+    this.orderRepository = orderRepository;
+    this.clientRepository = clientRepository;
+    this.productRepository = productRepository;
+    this.orderMapper = orderMapper;
+  }
+
+  @GetMapping
+  public List<OrderDto> getAll() {
+    return orderRepository.findAll().stream().map(orderMapper::toDto).collect(Collectors.toList());
+  }
+
+  @GetMapping("/{id}")
+  public ResponseEntity<OrderDto> getOne(@PathVariable Long id) {
+    return orderRepository
+        .findById(id)
+        .map(orderMapper::toDto)
+        .map(ResponseEntity::ok)
+        .orElse(ResponseEntity.notFound().build());
+  }
+
+  @PostMapping
+  public ResponseEntity<OrderDto> create(@RequestBody OrderDto dto) {
+    Order order = orderMapper.toEntity(dto);
+
+    // Validate client exists
+    if (dto.getClientId() != null) {
+      Client client = clientRepository.findById(dto.getClientId()).orElse(null);
+      if (client == null) {
+        return ResponseEntity.badRequest().build();
+      }
+      order.setClient(client);
     }
 
-    @GetMapping
-    public List<OrderDto> getAll() {
-        return orderRepository.findAll().stream()
-                .map(orderMapper::toDto)
-                .collect(Collectors.toList());
+    // Validate product exists
+    if (dto.getProductId() != null) {
+      Product product = productRepository.findById(dto.getProductId()).orElse(null);
+      if (product == null) {
+        return ResponseEntity.badRequest().build();
+      }
+      order.setProduct(product);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<OrderDto> getOne(@PathVariable Long id) {
-        return orderRepository.findById(id)
-                .map(orderMapper::toDto)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
+    Order saved = orderRepository.save(order);
+    return ResponseEntity.ok(orderMapper.toDto(saved));
+  }
 
-    @PostMapping
-    public ResponseEntity<OrderDto> create(@RequestBody OrderDto dto) {
-        Order order = orderMapper.toEntity(dto);
-        
-        // Validate client exists
-        if (dto.getClientId() != null) {
-            Client client = clientRepository.findById(dto.getClientId())
-                    .orElse(null);
-            if (client == null) {
-                return ResponseEntity.badRequest().build();
-            }
-            order.setClient(client);
-        }
-        
-        // Validate product exists
-        if (dto.getProductId() != null) {
-            Product product = productRepository.findById(dto.getProductId())
-                    .orElse(null);
-            if (product == null) {
-                return ResponseEntity.badRequest().build();
-            }
-            order.setProduct(product);
-        }
-        
-        Order saved = orderRepository.save(order);
-        return ResponseEntity.ok(orderMapper.toDto(saved));
-    }
+  @PutMapping("/{id}")
+  public ResponseEntity<OrderDto> update(@PathVariable Long id, @RequestBody OrderDto dto) {
+    return orderRepository
+        .findById(id)
+        .map(
+            entity -> {
+              entity.setTotalPrice(dto.getTotalPrice());
 
-    @PutMapping("/{id}")
-    public ResponseEntity<OrderDto> update(@PathVariable Long id, @RequestBody OrderDto dto) {
-        return orderRepository.findById(id)
-                .map(entity -> {
-                    entity.setTotalPrice(dto.getTotalPrice());
-                    
-                    // Validate client if provided
-                    if (dto.getClientId() != null) {
-                        Client client = clientRepository.findById(dto.getClientId()).orElse(null);
-                        if (client == null) {
-                            return ResponseEntity.badRequest().<OrderDto>build();
-                        }
-                        entity.setClient(client);
-                    } else {
-                        entity.setClient(null);
-                    }
-                    
-                    // Validate product if provided
-                    if (dto.getProductId() != null) {
-                        Product product = productRepository.findById(dto.getProductId()).orElse(null);
-                        if (product == null) {
-                            return ResponseEntity.badRequest().<OrderDto>build();
-                        }
-                        entity.setProduct(product);
-                    } else {
-                        entity.setProduct(null);
-                    }
-                    
-                    orderRepository.save(entity);
-                    return ResponseEntity.ok(orderMapper.toDto(entity));
-                })
-                .orElse(ResponseEntity.notFound().build());
-    }
+              // Validate client if provided
+              if (dto.getClientId() != null) {
+                Client client = clientRepository.findById(dto.getClientId()).orElse(null);
+                if (client == null) {
+                  return ResponseEntity.badRequest().<OrderDto>build();
+                }
+                entity.setClient(client);
+              } else {
+                entity.setClient(null);
+              }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        if (!orderRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        orderRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
-    }
+              // Validate product if provided
+              if (dto.getProductId() != null) {
+                Product product = productRepository.findById(dto.getProductId()).orElse(null);
+                if (product == null) {
+                  return ResponseEntity.badRequest().<OrderDto>build();
+                }
+                entity.setProduct(product);
+              } else {
+                entity.setProduct(null);
+              }
 
-    @GetMapping("/client/{clientId}")
-    public List<OrderDto> getByClientId(@PathVariable Long clientId) {
-        return orderRepository.findByClientId(clientId).stream()
-                .map(orderMapper::toDto)
-                .collect(Collectors.toList());
-    }
+              orderRepository.save(entity);
+              return ResponseEntity.ok(orderMapper.toDto(entity));
+            })
+        .orElse(ResponseEntity.notFound().build());
+  }
 
-    @GetMapping("/product/{productId}")
-    public List<OrderDto> getByProductId(@PathVariable Long productId) {
-        return orderRepository.findByProductId(productId).stream()
-                .map(orderMapper::toDto)
-                .collect(Collectors.toList());
+  @DeleteMapping("/{id}")
+  public ResponseEntity<Void> delete(@PathVariable Long id) {
+    if (!orderRepository.existsById(id)) {
+      return ResponseEntity.notFound().build();
     }
+    orderRepository.deleteById(id);
+    return ResponseEntity.noContent().build();
+  }
 
-    @GetMapping("/price-range")
-    public List<OrderDto> getByPriceRange(@RequestParam Double minPrice, @RequestParam Double maxPrice) {
-        return orderRepository.findByTotalPriceBetween(minPrice, maxPrice).stream()
-                .map(orderMapper::toDto)
-                .collect(Collectors.toList());
-    }
+  @GetMapping("/client/{clientId}")
+  public List<OrderDto> getByClientId(@PathVariable Long clientId) {
+    return orderRepository.findByClientId(clientId).stream()
+        .map(orderMapper::toDto)
+        .collect(Collectors.toList());
+  }
 
+  @GetMapping("/product/{productId}")
+  public List<OrderDto> getByProductId(@PathVariable Long productId) {
+    return orderRepository.findByProductId(productId).stream()
+        .map(orderMapper::toDto)
+        .collect(Collectors.toList());
+  }
+
+  @GetMapping("/price-range")
+  public List<OrderDto> getByPriceRange(
+      @RequestParam Double minPrice, @RequestParam Double maxPrice) {
+    return orderRepository.findByTotalPriceBetween(minPrice, maxPrice).stream()
+        .map(orderMapper::toDto)
+        .collect(Collectors.toList());
+  }
 }

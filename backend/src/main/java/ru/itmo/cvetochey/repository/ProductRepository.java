@@ -7,12 +7,11 @@ import ru.itmo.cvetochey.model.Product;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
-    List<Product> findByCatalog(Catalog catalog);
-    
-    List<Product> findByCatalogId(Long catalogId);
-    
-    List<Product> findByNameContainingIgnoreCase(String name);
-    
-    List<Product> findByPriceBetween(Double minPrice, Double maxPrice);
+  List<Product> findByCatalog(Catalog catalog);
 
+  List<Product> findByCatalogId(Long catalogId);
+
+  List<Product> findByNameContainingIgnoreCase(String name);
+
+  List<Product> findByPriceBetween(Double minPrice, Double maxPrice);
 }

@@ -7,7 +7,7 @@ on:
       - 'frontend/**'
       - '.github/workflows/frontend-deploy.yml'
   pull_request:
-    branches: [ master ]
+    branches: [ master, dev ]
     paths:
       - 'frontend/**'
 
@@ -33,11 +33,8 @@ jobs:
         platforms: linux/amd64,linux/arm64
 
     - name: Log in to Yandex Container Registry
-      uses: docker/login-action@v3
-      with:
-        registry: ${{ env.REGISTRY }}
-        username: json_key
-        password: ${{ secrets.YC_SERVICE_ACCOUNT_KEY }}
+      run: |
+        echo "${{ secrets.YC_SERVICE_ACCOUNT_KEY }}" | base64 -d | docker login ${{ env.REGISTRY }} -u json_key --password-stdin
 
     - name: Extract metadata
       id: meta
@@ -47,7 +44,7 @@ jobs:
         tags: |
           type=ref,event=branch
           type=ref,event=pr
-          type=sha,prefix={{branch}}-
+          type=sha,prefix=commit-
           type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' }}
         labels: |
           org.opencontainers.image.title=${{ env.IMAGE_NAME }}

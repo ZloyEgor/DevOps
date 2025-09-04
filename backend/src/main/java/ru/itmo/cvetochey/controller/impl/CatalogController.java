@@ -23,64 +23,66 @@ import ru.itmo.cvetochey.repository.CatalogRepository;
 @CrossOrigin(origins = "*")
 public class CatalogController {
 
-    private final CatalogRepository catalogRepository;
-    private final CatalogMapper catalogMapper;
+  private final CatalogRepository catalogRepository;
+  private final CatalogMapper catalogMapper;
 
-    public CatalogController(CatalogRepository catalogRepository, CatalogMapper catalogMapper) {
-        this.catalogRepository = catalogRepository;
-        this.catalogMapper = catalogMapper;
+  public CatalogController(CatalogRepository catalogRepository, CatalogMapper catalogMapper) {
+    this.catalogRepository = catalogRepository;
+    this.catalogMapper = catalogMapper;
+  }
+
+  @GetMapping
+  public List<CatalogDto> getAll() {
+    return catalogRepository.findAll().stream()
+        .map(catalogMapper::toDto)
+        .collect(Collectors.toList());
+  }
+
+  @GetMapping("/{id}")
+  public ResponseEntity<CatalogDto> getOne(@PathVariable Long id) {
+    return catalogRepository
+        .findById(id)
+        .map(catalogMapper::toDto)
+        .map(ResponseEntity::ok)
+        .orElse(ResponseEntity.notFound().build());
+  }
+
+  @PostMapping
+  public ResponseEntity<CatalogDto> create(@RequestBody CatalogDto dto) {
+    Catalog catalog = catalogMapper.toEntity(dto);
+    Catalog saved = catalogRepository.save(catalog);
+    return ResponseEntity.ok(catalogMapper.toDto(saved));
+  }
+
+  @PutMapping("/{id}")
+  public ResponseEntity<CatalogDto> update(@PathVariable Long id, @RequestBody CatalogDto dto) {
+    return catalogRepository
+        .findById(id)
+        .map(
+            entity -> {
+              entity.setName(dto.getName());
+              entity.setDescription(dto.getDescription());
+              entity.setCatalogType(dto.getCatalogType());
+              catalogRepository.save(entity);
+              return catalogMapper.toDto(entity);
+            })
+        .map(ResponseEntity::ok)
+        .orElse(ResponseEntity.notFound().build());
+  }
+
+  @DeleteMapping("/{id}")
+  public ResponseEntity<Void> delete(@PathVariable Long id) {
+    if (!catalogRepository.existsById(id)) {
+      return ResponseEntity.notFound().build();
     }
+    catalogRepository.deleteById(id);
+    return ResponseEntity.noContent().build();
+  }
 
-    @GetMapping
-    public List<CatalogDto> getAll() {
-        return catalogRepository.findAll().stream()
-                .map(catalogMapper::toDto)
-                .collect(Collectors.toList());
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<CatalogDto> getOne(@PathVariable Long id) {
-        return catalogRepository.findById(id)
-                .map(catalogMapper::toDto)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    @PostMapping
-    public ResponseEntity<CatalogDto> create(@RequestBody CatalogDto dto) {
-        Catalog catalog = catalogMapper.toEntity(dto);
-        Catalog saved = catalogRepository.save(catalog);
-        return ResponseEntity.ok(catalogMapper.toDto(saved));
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<CatalogDto> update(@PathVariable Long id, @RequestBody CatalogDto dto) {
-        return catalogRepository.findById(id)
-                .map(entity -> {
-                    entity.setName(dto.getName());
-                    entity.setDescription(dto.getDescription());
-                    entity.setCatalogType(dto.getCatalogType());
-                    catalogRepository.save(entity);
-                    return catalogMapper.toDto(entity);
-                })
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        if (!catalogRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        catalogRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/byType/{type}")
-    public List<CatalogDto> getByType(@PathVariable CatalogType type) {
-        return catalogRepository.findByCatalogType(type).stream()
-                .map(catalogMapper::toDto)
-                .collect(Collectors.toList());
-    }
-
+  @GetMapping("/byType/{type}")
+  public List<CatalogDto> getByType(@PathVariable CatalogType type) {
+    return catalogRepository.findByCatalogType(type).stream()
+        .map(catalogMapper::toDto)
+        .collect(Collectors.toList());
+  }
 }

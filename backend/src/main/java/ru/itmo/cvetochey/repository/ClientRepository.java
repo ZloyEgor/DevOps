@@ -8,14 +8,13 @@ import ru.itmo.cvetochey.model.UserRole;
 
 public interface ClientRepository extends JpaRepository<Client, Long> {
 
-    Optional<Client> findByEmail(String email);
-    
-    Optional<Client> findByUsername(String username);
-    
-    List<Client> findByUserRole(UserRole userRole);
-    
-    boolean existsByEmail(String email);
-    
-    boolean existsByUsername(String username);
+  Optional<Client> findByEmail(String email);
 
+  Optional<Client> findByUsername(String username);
+
+  List<Client> findByUserRole(UserRole userRole);
+
+  boolean existsByEmail(String email);
+
+  boolean existsByUsername(String username);
 }

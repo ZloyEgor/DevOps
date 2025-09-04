@@ -24,18 +24,17 @@ import lombok.Setter;
 @Builder
 public class Catalog {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    private String name;
+  private String name;
 
-    private String description;
+  private String description;
 
-    @Enumerated(EnumType.STRING)
-    private CatalogType catalogType;
+  @Enumerated(EnumType.STRING)
+  private CatalogType catalogType;
 
-    @OneToMany(mappedBy = "catalog")
-    private List<Product> products;
-
+  @OneToMany(mappedBy = "catalog")
+  private List<Product> products;
 }

@@ -1,5 +1,7 @@
 package ru.itmo.cvetochey.service;
 
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,94 +14,96 @@ import ru.itmo.cvetochey.repository.CartItemRepository;
 import ru.itmo.cvetochey.repository.ClientRepository;
 import ru.itmo.cvetochey.repository.ProductRepository;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 @Service
 @RequiredArgsConstructor
 public class CartService {
 
-    private final CartItemRepository cartItemRepository;
-    private final ClientRepository clientRepository;
-    private final ProductRepository productRepository;
-    private final CartItemMapper cartItemMapper;
+  private static final String CART_ITEM_NOT_FOUND = "Cart item not found";
+  private static final String UNAUTHORIZED_ACCESS = "Unauthorized access to cart item";
 
-    public List<CartItemDto> getCartItems(Long clientId) {
-        return cartItemRepository.findByClientId(clientId)
-                .stream()
-                .map(cartItemMapper::toDto)
-                .collect(Collectors.toList());
+  private final CartItemRepository cartItemRepository;
+  private final ClientRepository clientRepository;
+  private final ProductRepository productRepository;
+  private final CartItemMapper cartItemMapper;
+
+  public List<CartItemDto> getCartItems(Long clientId) {
+    return cartItemRepository.findByClientId(clientId).stream()
+        .map(cartItemMapper::toDto)
+        .collect(Collectors.toList());
+  }
+
+  @Transactional
+  public CartItemDto addToCart(Long clientId, Long productId, Integer quantity) {
+    Client client =
+        clientRepository
+            .findById(clientId)
+            .orElseThrow(() -> new RuntimeException("Client not found"));
+
+    Product product =
+        productRepository
+            .findById(productId)
+            .orElseThrow(() -> new RuntimeException("Product not found"));
+
+    // Check if item already exists in cart
+    var existingItem = cartItemRepository.findByClientIdAndProductId(clientId, productId);
+
+    CartItem cartItem;
+    if (existingItem.isPresent()) {
+      cartItem = existingItem.get();
+      cartItem.setQuantity(cartItem.getQuantity() + quantity);
+    } else {
+      cartItem = CartItem.builder().client(client).product(product).quantity(quantity).build();
     }
 
-    @Transactional
-    public CartItemDto addToCart(Long clientId, Long productId, Integer quantity) {
-        Client client = clientRepository.findById(clientId)
-                .orElseThrow(() -> new RuntimeException("Client not found"));
-        
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+    cartItem = cartItemRepository.save(cartItem);
+    return cartItemMapper.toDto(cartItem);
+  }
 
-        // Check if item already exists in cart
-        var existingItem = cartItemRepository.findByClientIdAndProductId(clientId, productId);
-        
-        CartItem cartItem;
-        if (existingItem.isPresent()) {
-            cartItem = existingItem.get();
-            cartItem.setQuantity(cartItem.getQuantity() + quantity);
-        } else {
-            cartItem = CartItem.builder()
-                    .client(client)
-                    .product(product)
-                    .quantity(quantity)
-                    .build();
-        }
+  @Transactional
+  public CartItemDto updateCartItem(Long clientId, Long itemId, Integer quantity) {
+    CartItem cartItem =
+        cartItemRepository
+            .findById(itemId)
+            .orElseThrow(() -> new RuntimeException(CART_ITEM_NOT_FOUND));
 
-        cartItem = cartItemRepository.save(cartItem);
-        return cartItemMapper.toDto(cartItem);
+    // Verify the item belongs to the client
+    if (!cartItem.getClient().getId().equals(clientId)) {
+      throw new RuntimeException(UNAUTHORIZED_ACCESS);
     }
 
-    @Transactional
-    public CartItemDto updateCartItem(Long clientId, Long itemId, Integer quantity) {
-        CartItem cartItem = cartItemRepository.findById(itemId)
-                .orElseThrow(() -> new RuntimeException("Cart item not found"));
-
-        // Verify the item belongs to the client
-        if (!cartItem.getClient().getId().equals(clientId)) {
-            throw new RuntimeException("Unauthorized access to cart item");
-        }
-
-        if (quantity <= 0) {
-            cartItemRepository.delete(cartItem);
-            return null;
-        }
-
-        cartItem.setQuantity(quantity);
-        cartItem = cartItemRepository.save(cartItem);
-        return cartItemMapper.toDto(cartItem);
+    if (quantity <= 0) {
+      cartItemRepository.delete(cartItem);
+      return null;
     }
 
-    @Transactional
-    public void removeFromCart(Long clientId, Long itemId) {
-        CartItem cartItem = cartItemRepository.findById(itemId)
-                .orElseThrow(() -> new RuntimeException("Cart item not found"));
+    cartItem.setQuantity(quantity);
+    cartItem = cartItemRepository.save(cartItem);
+    return cartItemMapper.toDto(cartItem);
+  }
 
-        // Verify the item belongs to the client
-        if (!cartItem.getClient().getId().equals(clientId)) {
-            throw new RuntimeException("Unauthorized access to cart item");
-        }
+  @Transactional
+  public void removeFromCart(Long clientId, Long itemId) {
+    CartItem cartItem =
+        cartItemRepository
+            .findById(itemId)
+            .orElseThrow(() -> new RuntimeException(CART_ITEM_NOT_FOUND));
 
-        cartItemRepository.delete(cartItem);
+    // Verify the item belongs to the client
+    if (!cartItem.getClient().getId().equals(clientId)) {
+      throw new RuntimeException(UNAUTHORIZED_ACCESS);
     }
 
-    @Transactional
-    public void clearCart(Long clientId) {
-        cartItemRepository.deleteByClientId(clientId);
-    }
+    cartItemRepository.delete(cartItem);
+  }
 
-    public Double getCartTotal(Long clientId) {
-        return cartItemRepository.findByClientId(clientId)
-                .stream()
-                .mapToDouble(item -> item.getProduct().getPrice() * item.getQuantity())
-                .sum();
-    }
+  @Transactional
+  public void clearCart(Long clientId) {
+    cartItemRepository.deleteByClientId(clientId);
+  }
+
+  public Double getCartTotal(Long clientId) {
+    return cartItemRepository.findByClientId(clientId).stream()
+        .mapToDouble(item -> item.getProduct().getPrice() * item.getQuantity())
+        .sum();
+  }
 }

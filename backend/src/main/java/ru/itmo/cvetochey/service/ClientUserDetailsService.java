@@ -11,13 +11,16 @@ import ru.itmo.cvetochey.repository.ClientRepository;
 @RequiredArgsConstructor
 public class ClientUserDetailsService implements UserDetailsService {
 
-    private final ClientRepository clientRepository;
+  private final ClientRepository clientRepository;
 
-    @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        var client = clientRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
-        
-        return new ClientUserDetails(client);
-    }
+  @Override
+  public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+    var client =
+        clientRepository
+            .findByEmail(email)
+            .orElseThrow(
+                () -> new UsernameNotFoundException("User not found with email: " + email));
+
+    return new ClientUserDetails(client);
+  }
 }

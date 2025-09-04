@@ -23,7 +23,6 @@ This guide sets up a complete CI/CD pipeline using GitHub Actions that automatic
 
 ### 1. Run the Setup Script
 ```bash
-cd /Users/egorstukov/Developer/DevOps
 ./.github/setup-secrets.sh
 ```
 

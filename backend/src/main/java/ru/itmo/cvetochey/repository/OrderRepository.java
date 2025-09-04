@@ -8,14 +8,13 @@ import ru.itmo.cvetochey.model.Product;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
 
-    List<Order> findByClient(Client client);
-    
-    List<Order> findByClientId(Long clientId);
-    
-    List<Order> findByProduct(Product product);
-    
-    List<Order> findByProductId(Long productId);
-    
-    List<Order> findByTotalPriceBetween(Double minPrice, Double maxPrice);
+  List<Order> findByClient(Client client);
 
+  List<Order> findByClientId(Long clientId);
+
+  List<Order> findByProduct(Product product);
+
+  List<Order> findByProductId(Long productId);
+
+  List<Order> findByTotalPriceBetween(Double minPrice, Double maxPrice);
 }

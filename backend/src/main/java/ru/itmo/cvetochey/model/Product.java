@@ -22,20 +22,19 @@ import lombok.Setter;
 @Builder
 public class Product {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    private String name;
+  private String name;
 
-    private String description;
+  private String description;
 
-    private Double price;
+  private Double price;
 
-    private String pictureUrl;
+  private String pictureUrl;
 
-    @ManyToOne
-    @JoinColumn(name = "catalog_id")
-    private Catalog catalog;
-
+  @ManyToOne
+  @JoinColumn(name = "catalog_id")
+  private Catalog catalog;
 }

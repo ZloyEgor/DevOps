@@ -22,17 +22,16 @@ import lombok.Setter;
 @Builder
 public class Client {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    private String email;
+  private String email;
 
-    private String username;
+  private String username;
 
-    private String password;
+  private String password;
 
-    @Enumerated(EnumType.STRING)
-    private UserRole userRole;
-
+  @Enumerated(EnumType.STRING)
+  private UserRole userRole;
 }
