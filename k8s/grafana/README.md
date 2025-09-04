@@ -48,6 +48,7 @@ docker-compose up -d
 - **URL**: http://localhost:3001
 - **Login**: admin
 - **Password**: admin123
+- **Direct Dashboard**: http://localhost:3001/d/cvetochey-monitoring/cvetochey-application-monitoring
 
 ## 🔧 Port Forwarding Commands
 

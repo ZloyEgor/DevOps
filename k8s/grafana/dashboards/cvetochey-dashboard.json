@@ -1,200 +1,262 @@
 {
-  "dashboard": {
-    "id": null,
-    "title": "CvetOchey Application Monitoring",
-    "tags": ["cvetochey", "kubernetes", "application"],
-    "style": "dark",
-    "timezone": "browser",
-    "panels": [
-      {
-        "id": 1,
-        "title": "HTTP Requests Rate",
-        "type": "graph",
-        "targets": [
-          {
-            "expr": "rate(http_server_requests_seconds_count{job=\"kubernetes-pods\", kubernetes_namespace=\"cvetochey\"}[5m])",
-            "legendFormat": "{{method}} {{uri}} ({{status}})"
-          }
-        ],
-        "xAxis": {
-          "show": true
-        },
-        "yAxes": [
-          {
-            "label": "requests/sec",
-            "show": true
-          }
-        ],
-        "gridPos": {
-          "h": 8,
-          "w": 12,
-          "x": 0,
-          "y": 0
+  "id": null,
+  "uid": "cvetochey-monitoring",
+  "title": "CvetOchey Application Monitoring",
+  "tags": ["cvetochey", "kubernetes", "application"],
+  "style": "dark",
+  "timezone": "browser",
+  "editable": true,
+  "graphTooltip": 0,
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "refresh": "30s",
+  "schemaVersion": 27,
+  "version": 1,
+  "panels": [
+    {
+      "id": 1,
+      "title": "HTTP Requests Rate",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "rate(http_server_requests_seconds_count{job=\"kubernetes-pods\", kubernetes_namespace=\"cvetochey\"}[5m])",
+          "legendFormat": "{{method}} {{uri}} ({{status}})",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "displayName": "Requests/sec"
         }
       },
-      {
-        "id": 2,
-        "title": "HTTP Response Time",
-        "type": "graph",
-        "targets": [
-          {
-            "expr": "histogram_quantile(0.95, rate(http_server_requests_seconds_bucket{job=\"kubernetes-pods\", kubernetes_namespace=\"cvetochey\"}[5m]))",
-            "legendFormat": "95th percentile"
-          },
-          {
-            "expr": "histogram_quantile(0.50, rate(http_server_requests_seconds_bucket{job=\"kubernetes-pods\", kubernetes_namespace=\"cvetochey\"}[5m]))",
-            "legendFormat": "50th percentile"
-          },
-          {
-            "expr": "histogram_quantile(0.99, rate(http_server_requests_seconds_bucket{job=\"kubernetes-pods\", kubernetes_namespace=\"cvetochey\"}[5m]))",
-            "legendFormat": "99th percentile"
-          }
-        ],
-        "yAxes": [
-          {
-            "label": "seconds",
-            "show": true
-          }
-        ],
-        "gridPos": {
-          "h": 8,
-          "w": 12,
-          "x": 12,
-          "y": 0
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
         }
       },
-      {
-        "id": 3,
-        "title": "CPU Usage",
-        "type": "graph",
-        "targets": [
-          {
-            "expr": "rate(container_cpu_usage_seconds_total{namespace=\"cvetochey\", container!=\"POD\"}[5m]) * 100",
-            "legendFormat": "{{pod}} - {{container}}"
-          }
-        ],
-        "yAxes": [
-          {
-            "label": "% CPU",
-            "show": true
-          }
-        ],
-        "gridPos": {
-          "h": 8,
-          "w": 12,
-          "x": 0,
-          "y": 8
-        }
-      },
-      {
-        "id": 4,
-        "title": "Memory Usage",
-        "type": "graph",
-        "targets": [
-          {
-            "expr": "container_memory_usage_bytes{namespace=\"cvetochey\", container!=\"POD\"} / 1024 / 1024",
-            "legendFormat": "{{pod}} - {{container}}"
-          }
-        ],
-        "yAxes": [
-          {
-            "label": "MB",
-            "show": true
-          }
-        ],
-        "gridPos": {
-          "h": 8,
-          "w": 12,
-          "x": 12,
-          "y": 8
-        }
-      },
-      {
-        "id": 5,
-        "title": "Pod Status",
-        "type": "stat",
-        "targets": [
-          {
-            "expr": "kube_pod_status_phase{namespace=\"cvetochey\"}",
-            "legendFormat": "{{pod}} - {{phase}}"
-          }
-        ],
-        "gridPos": {
-          "h": 8,
-          "w": 24,
-          "x": 0,
-          "y": 16
-        }
-      },
-      {
-        "id": 6,
-        "title": "Endpoint Hit Count",
-        "type": "graph",
-        "targets": [
-          {
-            "expr": "increase(http_server_requests_seconds_count{job=\"kubernetes-pods\", kubernetes_namespace=\"cvetochey\"}[1h])",
-            "legendFormat": "{{method}} {{uri}} ({{status}})"
-          }
-        ],
-        "yAxes": [
-          {
-            "label": "requests",
-            "show": true
-          }
-        ],
-        "gridPos": {
-          "h": 8,
-          "w": 24,
-          "x": 0,
-          "y": 24
-        }
-      },
-      {
-        "id": 7,
-        "title": "Top Endpoints by Request Count",
-        "type": "table",
-        "targets": [
-          {
-            "expr": "topk(10, sum by (method, uri, status) (increase(http_server_requests_seconds_count{job=\"kubernetes-pods\", kubernetes_namespace=\"cvetochey\"}[1h])))",
-            "legendFormat": "{{method}} {{uri}} ({{status}})",
-            "format": "table"
-          }
-        ],
-        "gridPos": {
-          "h": 8,
-          "w": 12,
-          "x": 0,
-          "y": 32
-        }
-      },
-      {
-        "id": 8,
-        "title": "Error Rate by Endpoint",
-        "type": "graph",
-        "targets": [
-          {
-            "expr": "rate(http_server_requests_seconds_count{job=\"kubernetes-pods\", kubernetes_namespace=\"cvetochey\", status=~\"4..|5..\"}[5m])",
-            "legendFormat": "{{method}} {{uri}} ({{status}})"
-          }
-        ],
-        "yAxes": [
-          {
-            "label": "errors/sec",
-            "show": true
-          }
-        ],
-        "gridPos": {
-          "h": 8,
-          "w": 12,
-          "x": 12,
-          "y": 32
-        }
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
       }
-    ],
-    "time": {
-      "from": "now-1h",
-      "to": "now"
     },
-    "refresh": "5s"
-  }
+    {
+      "id": 2,
+      "title": "HTTP Response Time Percentiles",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, rate(http_server_requests_seconds_bucket{job=\"kubernetes-pods\", kubernetes_namespace=\"cvetochey\"}[5m]))",
+          "legendFormat": "95th percentile",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.50, rate(http_server_requests_seconds_bucket{job=\"kubernetes-pods\", kubernetes_namespace=\"cvetochey\"}[5m]))",
+          "legendFormat": "50th percentile",
+          "refId": "B"
+        },
+        {
+          "expr": "histogram_quantile(0.99, rate(http_server_requests_seconds_bucket{job=\"kubernetes-pods\", kubernetes_namespace=\"cvetochey\"}[5m]))",
+          "legendFormat": "99th percentile",
+          "refId": "C"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "displayName": "Response Time"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      }
+    },
+    {
+      "id": 3,
+      "title": "CPU Usage",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "rate(container_cpu_usage_seconds_total{namespace=\"cvetochey\", container!=\"POD\", container!=\"\"}[5m]) * 100",
+          "legendFormat": "{{pod}} - {{container}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "max": 100,
+          "min": 0
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      }
+    },
+    {
+      "id": 4,
+      "title": "Memory Usage",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "container_memory_usage_bytes{namespace=\"cvetochey\", container!=\"POD\", container!=\"\"} / 1024 / 1024",
+          "legendFormat": "{{pod}} - {{container}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "decbytes",
+          "displayName": "Memory Usage (MB)"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      }
+    },
+    {
+      "id": 5,
+      "title": "Pod Status",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "kube_pod_status_phase{namespace=\"cvetochey\"}",
+          "legendFormat": "{{pod}} - {{phase}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "options": {
+                "1": {
+                  "text": "Running",
+                  "color": "green"
+                },
+                "0": {
+                  "text": "Not Running",
+                  "color": "red"
+                }
+              },
+              "type": "value"
+            }
+          ]
+        }
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 16
+      }
+    },
+    {
+      "id": 6,
+      "title": "Endpoint Hit Count (Last Hour)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "increase(http_server_requests_seconds_count{job=\"kubernetes-pods\", kubernetes_namespace=\"cvetochey\"}[1h])",
+          "legendFormat": "{{method}} {{uri}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "displayName": "Requests"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 20
+      }
+    },
+    {
+      "id": 7,
+      "title": "Top Endpoints by Request Count",
+      "type": "table",
+      "targets": [
+        {
+          "expr": "topk(10, sum(rate(http_server_requests_seconds_count{job=\"kubernetes-pods\", kubernetes_namespace=\"cvetochey\"}[5m])) by (uri, method))",
+          "format": "table",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "displayMode": "auto"
+          }
+        }
+      },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "job": true,
+              "kubernetes_namespace": true
+            },
+            "renameByName": {
+              "method": "Method",
+              "uri": "Endpoint",
+              "Value": "Requests/sec"
+            }
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 20
+      }
+    },
+    {
+      "id": 8,
+      "title": "Error Rate by Endpoint",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "rate(http_server_requests_seconds_count{job=\"kubernetes-pods\", kubernetes_namespace=\"cvetochey\", status=~\"4..|5..\"}[5m])",
+          "legendFormat": "{{method}} {{uri}} ({{status}})",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "displayName": "Error Rate"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 28
+      }
+    }
+  ]
 }
