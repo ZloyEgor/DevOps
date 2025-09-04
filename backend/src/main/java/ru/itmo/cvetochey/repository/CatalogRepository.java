@@ -7,6 +7,5 @@ import ru.itmo.cvetochey.model.CatalogType;
 
 public interface CatalogRepository extends JpaRepository<Catalog, Long> {
 
-    List<Catalog> findByCatalogType(CatalogType catalogType);
-
+  List<Catalog> findByCatalogType(CatalogType catalogType);
 }

@@ -13,22 +13,18 @@ import ru.itmo.cvetochey.model.Product;
 @Mapper(componentModel = "spring")
 public abstract class CatalogMapper {
 
-    @Autowired
-    protected ProductMapper productMapper;
+  @Autowired protected ProductMapper productMapper;
 
-    @Mapping(target = "productDtos", expression = "java(mapProductsToDtos(catalog.getProducts()))")
-    public abstract CatalogDto toDto(Catalog catalog);
+  @Mapping(target = "productDtos", expression = "java(mapProductsToDtos(catalog.getProducts()))")
+  public abstract CatalogDto toDto(Catalog catalog);
 
-    @Mapping(target = "products", ignore = true)
-    public abstract Catalog toEntity(CatalogDto dto);
+  @Mapping(target = "products", ignore = true)
+  public abstract Catalog toEntity(CatalogDto dto);
 
-    List<ProductDto> mapProductsToDtos(List<Product> products) {
-        if (products == null) {
-            return null;
-        }
-        return products.stream()
-                .map(productMapper::toDto)
-                .collect(Collectors.toList());
+  List<ProductDto> mapProductsToDtos(List<Product> products) {
+    if (products == null) {
+      return null;
     }
-
+    return products.stream().map(productMapper::toDto).collect(Collectors.toList());
+  }
 }

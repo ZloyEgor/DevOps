@@ -8,9 +8,9 @@ import ru.itmo.cvetochey.model.Product;
 @Mapper(componentModel = "spring")
 public interface ProductMapper {
 
-    @Mapping(target = "catalog", ignore = true)
-    Product toEntity(ProductDto dto);
+  @Mapping(target = "catalog", ignore = true)
+  Product toEntity(ProductDto dto);
 
-    @Mapping(target = "catalogId", source = "catalog.id")
-    ProductDto toDto(Product entity);
+  @Mapping(target = "catalogId", source = "catalog.id")
+  ProductDto toDto(Product entity);
 }

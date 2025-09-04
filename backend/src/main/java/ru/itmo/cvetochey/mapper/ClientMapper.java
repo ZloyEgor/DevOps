@@ -8,8 +8,7 @@ import ru.itmo.cvetochey.model.Client;
 @Mapper(componentModel = "spring")
 public interface ClientMapper {
 
-    ClientDto toDto(Client entity);
+  ClientDto toDto(Client entity);
 
-    Client toEntity(ClientCreateDto dto);
-
+  Client toEntity(ClientCreateDto dto);
 }

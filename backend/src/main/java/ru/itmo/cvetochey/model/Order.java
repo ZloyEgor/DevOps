@@ -22,18 +22,17 @@ import lombok.Setter;
 @Builder
 public class Order {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    private Double totalPrice;
+  private Double totalPrice;
 
-    @ManyToOne
-    @JoinColumn(name = "client_id")
-    private Client client;
+  @ManyToOne
+  @JoinColumn(name = "client_id")
+  private Client client;
 
-    @ManyToOne
-    @JoinColumn(name = "product_id")
-    private Product product;
-
+  @ManyToOne
+  @JoinColumn(name = "product_id")
+  private Product product;
 }
