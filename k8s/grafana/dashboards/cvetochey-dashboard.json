@@ -89,19 +89,20 @@
     },
     {
       "id": 3,
-      "title": "Pod CPU Usage",
+      "title": "System CPU Usage",
       "type": "timeseries",
       "targets": [
         {
-          "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"cvetochey\", container!=\"POD\", container!=\"\"}[5m])) by (pod) * 100",
-          "legendFormat": "{{pod}}",
+          "expr": "system_cpu_usage{job=\"kubernetes-pods\", kubernetes_namespace=\"cvetochey\"} * 100",
+          "legendFormat": "{{kubernetes_pod_name}} CPU %",
           "refId": "A"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
-          "min": 0
+          "min": 0,
+          "max": 100
         }
       },
       "options": {
@@ -124,12 +125,12 @@
       "targets": [
         {
           "expr": "jvm_memory_used_bytes{job=\"kubernetes-pods\", kubernetes_namespace=\"cvetochey\", area=\"heap\"} / 1024 / 1024",
-          "legendFormat": "Heap Used (MB)",
+          "legendFormat": "{{kubernetes_pod_name}} Heap Used (MB)",
           "refId": "A"
         },
         {
           "expr": "jvm_memory_max_bytes{job=\"kubernetes-pods\", kubernetes_namespace=\"cvetochey\", area=\"heap\"} / 1024 / 1024",
-          "legendFormat": "Heap Max (MB)",
+          "legendFormat": "{{kubernetes_pod_name}} Heap Max (MB)",
           "refId": "B"
         }
       ],
@@ -293,20 +294,51 @@
       "targets": [
         {
           "expr": "sum(rate(http_server_requests_seconds_count{job=\"kubernetes-pods\", kubernetes_namespace=\"cvetochey\", status=~\"4..|5..\"}[5m]))",
-          "legendFormat": "4xx/5xx Errors",
+          "legendFormat": "Error Rate (4xx/5xx)",
           "refId": "A"
         },
         {
           "expr": "sum(rate(http_server_requests_seconds_count{job=\"kubernetes-pods\", kubernetes_namespace=\"cvetochey\", status=~\"2..|3..\"}[5m]))",
-          "legendFormat": "2xx/3xx Success",
+          "legendFormat": "Success Rate (2xx/3xx)",
           "refId": "B"
         }
       ],
       "fieldConfig": {
         "defaults": {
-          "unit": "reqps",
-          "displayName": "Requests/sec"
-        }
+          "unit": "reqps"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Error Rate (4xx/5xx)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Success Rate (2xx/3xx)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "legend": {
@@ -345,8 +377,56 @@
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "min": 0
-        }
+          "min": 0,
+          "max": 12
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Current Replicas"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Min Replicas"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "yellow"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Max Replicas"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "legend": {
@@ -368,12 +448,12 @@
       "targets": [
         {
           "expr": "jvm_threads_live_threads{job=\"kubernetes-pods\", kubernetes_namespace=\"cvetochey\"}",
-          "legendFormat": "Live Threads",
+          "legendFormat": "{{kubernetes_pod_name}} Live Threads",
           "refId": "A"
         },
         {
           "expr": "rate(jvm_gc_pause_seconds_count{job=\"kubernetes-pods\", kubernetes_namespace=\"cvetochey\"}[5m]) * 60",
-          "legendFormat": "GC Events/min",
+          "legendFormat": "{{kubernetes_pod_name}} GC Events/min",
           "refId": "B"
         }
       ],
