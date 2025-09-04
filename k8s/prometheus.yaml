@@ -129,6 +129,17 @@ spec:
         app: prometheus
     spec:
       serviceAccountName: prometheus
+      securityContext:
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
+      initContainers:
+      - name: init-permissions
+        image: busybox
+        command: ['sh', '-c', 'chown -R 65534:65534 /prometheus']
+        volumeMounts:
+        - name: prometheus-storage
+          mountPath: /prometheus
       containers:
       - name: prometheus
         image: prom/prometheus:v2.47.0

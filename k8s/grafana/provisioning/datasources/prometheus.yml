@@ -4,6 +4,12 @@ datasources:
   - name: Prometheus
     type: prometheus
     access: proxy
-    url: http://YOUR_PROMETHEUS_EXTERNAL_IP:9090  # Replace with actual Prometheus external IP
+    url: http://host.docker.internal:9090
     isDefault: true
     editable: true
+    basicAuth: false
+    jsonData:
+      timeInterval: 5s
+      queryTimeout: 60s
+      httpMethod: POST
+    secureJsonData: {}
