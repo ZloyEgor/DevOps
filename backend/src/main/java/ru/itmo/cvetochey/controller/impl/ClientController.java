@@ -2,7 +2,6 @@ package ru.itmo.cvetochey.controller.impl;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -17,16 +16,21 @@ import ru.itmo.cvetochey.dto.ClientCreateDto;
 import ru.itmo.cvetochey.dto.ClientDto;
 import ru.itmo.cvetochey.mapper.ClientMapper;
 import ru.itmo.cvetochey.model.Client;
+import ru.itmo.cvetochey.model.UserRole;
 import ru.itmo.cvetochey.repository.ClientRepository;
 
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/cvet-ochey/api/v1/clients")
 @CrossOrigin(origins = "*")
 public class ClientController {
 
     private final ClientRepository clientRepository;
     private final ClientMapper clientMapper;
+
+    public ClientController(ClientRepository clientRepository, ClientMapper clientMapper) {
+        this.clientRepository = clientRepository;
+        this.clientMapper = clientMapper;
+    }
 
     @GetMapping
     public List<ClientDto> getAll() {
@@ -44,16 +48,36 @@ public class ClientController {
     }
 
     @PostMapping
-    public ClientDto create(@RequestBody ClientCreateDto dto) {
+    public ResponseEntity<ClientDto> create(@RequestBody ClientCreateDto dto) {
+        // Check if email already exists
+        if (dto.getEmail() != null && clientRepository.existsByEmail(dto.getEmail())) {
+            return ResponseEntity.badRequest().build();
+        }
+        // Check if username already exists
+        if (dto.getUsername() != null && clientRepository.existsByUsername(dto.getUsername())) {
+            return ResponseEntity.badRequest().build();
+        }
+        
         Client entity = clientMapper.toEntity(dto);
         Client saved = clientRepository.save(entity);
-        return clientMapper.toDto(saved);
+        return ResponseEntity.ok(clientMapper.toDto(saved));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ClientDto> update(@PathVariable Long id, @RequestBody ClientCreateDto dto) {
         return clientRepository.findById(id)
                 .map(entity -> {
+                    // Check if email is being changed and if new email already exists
+                    if (dto.getEmail() != null && !dto.getEmail().equals(entity.getEmail()) 
+                        && clientRepository.existsByEmail(dto.getEmail())) {
+                        return ResponseEntity.badRequest().<ClientDto>build();
+                    }
+                    // Check if username is being changed and if new username already exists
+                    if (dto.getUsername() != null && !dto.getUsername().equals(entity.getUsername()) 
+                        && clientRepository.existsByUsername(dto.getUsername())) {
+                        return ResponseEntity.badRequest().<ClientDto>build();
+                    }
+                    
                     entity.setEmail(dto.getEmail());
                     entity.setUsername(dto.getUsername());
                     if (dto.getPassword() != null) {
@@ -61,9 +85,8 @@ public class ClientController {
                     }
                     entity.setUserRole(dto.getUserRole());
                     clientRepository.save(entity);
-                    return clientMapper.toDto(entity);
+                    return ResponseEntity.ok(clientMapper.toDto(entity));
                 })
-                .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
@@ -74,6 +97,29 @@ public class ClientController {
         }
         clientRepository.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/email/{email}")
+    public ResponseEntity<ClientDto> getByEmail(@PathVariable String email) {
+        return clientRepository.findByEmail(email)
+                .map(clientMapper::toDto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/username/{username}")
+    public ResponseEntity<ClientDto> getByUsername(@PathVariable String username) {
+        return clientRepository.findByUsername(username)
+                .map(clientMapper::toDto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/role/{role}")
+    public List<ClientDto> getByRole(@PathVariable UserRole role) {
+        return clientRepository.findByUserRole(role).stream()
+                .map(clientMapper::toDto)
+                .collect(Collectors.toList());
     }
 
 }

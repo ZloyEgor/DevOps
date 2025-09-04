@@ -1,8 +1,9 @@
 package ru.itmo.cvetochey.controller.impl;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.itmo.cvetochey.dto.ProductDto;
 import ru.itmo.cvetochey.mapper.ProductMapper;
@@ -21,14 +23,20 @@ import ru.itmo.cvetochey.repository.CatalogRepository;
 import ru.itmo.cvetochey.repository.ProductRepository;
 
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/cvet-ochey/api/v1/products")
-@CrossOrigin(origins = "*")
 public class ProductController {
 
     private final ProductRepository productRepository;
     private final CatalogRepository catalogRepository;
     private final ProductMapper productMapper;
+
+    public ProductController(ProductRepository productRepository,
+                           CatalogRepository catalogRepository,
+                           ProductMapper productMapper) {
+        this.productRepository = productRepository;
+        this.catalogRepository = catalogRepository;
+        this.productMapper = productMapper;
+    }
 
     @GetMapping
     public List<ProductDto> getAll() {
@@ -46,13 +54,20 @@ public class ProductController {
     }
 
     @PostMapping
-    public ProductDto create(@RequestBody ProductDto dto) {
+    public ResponseEntity<ProductDto> create(@RequestBody ProductDto dto) {
         Product entity = productMapper.toEntity(dto);
+        
+        // Validate catalog if provided
         if (dto.getCatalogId() != null) {
-            catalogRepository.findById(dto.getCatalogId()).ifPresent(entity::setCatalog);
+            Catalog catalog = catalogRepository.findById(dto.getCatalogId()).orElse(null);
+            if (catalog == null) {
+                return ResponseEntity.badRequest().build();
+            }
+            entity.setCatalog(catalog);
         }
+        
         Product saved = productRepository.save(entity);
-        return productMapper.toDto(saved);
+        return ResponseEntity.ok(productMapper.toDto(saved));
     }
 
     @PutMapping("/{id}")
@@ -77,12 +92,41 @@ public class ProductController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Map<String, String>> delete(@PathVariable Long id) {
         if (!productRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
-        productRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
+        
+        try {
+            productRepository.deleteById(id);
+            return ResponseEntity.noContent().build();
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Cannot delete product");
+            errorResponse.put("message", "This product is referenced in existing orders and cannot be deleted");
+            return ResponseEntity.status(409).body(errorResponse); // 409 Conflict
+        }
+    }
+
+    @GetMapping("/catalog/{catalogId}")
+    public List<ProductDto> getByCatalogId(@PathVariable Long catalogId) {
+        return productRepository.findByCatalogId(catalogId).stream()
+                .map(productMapper::toDto)
+                .collect(Collectors.toList());
+    }
+
+    @GetMapping("/search")
+    public List<ProductDto> searchByName(@RequestParam String name) {
+        return productRepository.findByNameContainingIgnoreCase(name).stream()
+                .map(productMapper::toDto)
+                .collect(Collectors.toList());
+    }
+
+    @GetMapping("/price-range")
+    public List<ProductDto> getByPriceRange(@RequestParam Double minPrice, @RequestParam Double maxPrice) {
+        return productRepository.findByPriceBetween(minPrice, maxPrice).stream()
+                .map(productMapper::toDto)
+                .collect(Collectors.toList());
     }
 
 }

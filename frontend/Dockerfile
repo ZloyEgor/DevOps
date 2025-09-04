@@ -1,6 +1,11 @@
-# syntax=docker.io/docker/dockerfile:1
+# syntax=docker/dockerfile:1
 
-FROM node:20-alpine AS base
+# Multi-architecture support
+ARG BUILDPLATFORM=linux/amd64
+ARG TARGETPLATFORM=linux/amd64
+
+# Base image with multi-arch support
+FROM --platform=$BUILDPLATFORM node:20-alpine AS base
 
 # Install dependencies only when needed
 FROM base AS deps
@@ -10,10 +15,13 @@ WORKDIR /app
 
 # Install dependencies based on the preferred package manager
 COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* .npmrc* ./
+# Enable pnpm
+RUN corepack enable pnpm
+
 RUN \
-  if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
+  if [ -f pnpm-lock.yaml ]; then pnpm i --frozen-lockfile; \
+  elif [ -f yarn.lock ]; then yarn --frozen-lockfile; \
   elif [ -f package-lock.json ]; then npm ci; \
-  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --frozen-lockfile; \
   else echo "Lockfile not found." && exit 1; \
   fi
 
@@ -24,26 +32,43 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Next.js collects completely anonymous telemetry data about general usage.
-# Learn more here: https://nextjs.org/telemetry
-# Uncomment the following line in case you want to disable telemetry during the build.
-# ENV NEXT_TELEMETRY_DISABLED=1
+# Disable telemetry for build
+ENV NEXT_TELEMETRY_DISABLED=1
+# Skip linting during build for deployment
+ENV ESLINT_NO_DEV_ERRORS=true
+ENV NEXT_LINT=false
+# Optimize build memory usage for limited Docker memory
+ENV NODE_OPTIONS="--max_old_space_size=1536 --max_semi_space_size=64"
+ENV NEXT_WEBPACK_USEPOLLING=false
+ENV NEXT_WEBPACK_WATCHOPTIONS_IGNORED="node_modules"
+
+# Enable pnpm for build stage
+RUN corepack enable pnpm
 
 RUN \
-  if [ -f yarn.lock ]; then yarn run build; \
+  if [ -f pnpm-lock.yaml ]; then pnpm run build; \
+  elif [ -f yarn.lock ]; then yarn run build; \
   elif [ -f package-lock.json ]; then npm run build; \
-  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm run build; \
   else echo "Lockfile not found." && exit 1; \
   fi
 
 # Production image, copy all the files and run next
-FROM base AS runner
+FROM --platform=$TARGETPLATFORM node:20-alpine AS runner
+
+# Install security updates and required packages
+RUN apk update && \
+    apk upgrade && \
+    apk add --no-cache \
+    dumb-init \
+    curl && \
+    rm -rf /var/cache/apk/*
+
 WORKDIR /app
 
 ENV NODE_ENV=production
-# Uncomment the following line in case you want to disable telemetry during runtime.
-# ENV NEXT_TELEMETRY_DISABLED=1
+ENV NEXT_TELEMETRY_DISABLED=1
 
+# Create non-root user
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
@@ -56,11 +81,15 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
 
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:3000/api/health || curl -f http://localhost:3000/ || exit 1
+
 EXPOSE 3000
 
 ENV PORT=3000
-
-# server.js is created by next build from the standalone output
-# https://nextjs.org/docs/pages/api-reference/config/next-config-js/output
 ENV HOSTNAME="0.0.0.0"
+
+# Use dumb-init for proper signal handling
+ENTRYPOINT ["dumb-init", "--"]
 CMD ["node", "server.js"]

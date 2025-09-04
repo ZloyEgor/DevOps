@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  grafana:
+    image: grafana/grafana:latest
+    container_name: cvetochey-grafana
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_DOMAIN=localhost
+      - GF_SERVER_ROOT_URL=http://localhost:3001
+      - GF_ANALYTICS_REPORTING_ENABLED=false
+      - GF_ANALYTICS_CHECK_FOR_UPDATES=false
+    volumes:
+      - grafana-storage:/var/lib/grafana
+      - ./provisioning:/etc/grafana/provisioning
+      - ./dashboards:/var/lib/grafana/dashboards
+      - ./config:/etc/grafana/conf.d
+    networks:
+      - monitoring
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  grafana-storage:
+    driver: local
+
+networks:
+  monitoring:
+    driver: bridge

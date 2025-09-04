@@ -5,12 +5,13 @@ INSERT INTO product_catalog (name, description, catalog_type) VALUES
     ('Funeral Wreaths', 'Floral arrangements for memorial services', 'FLOWERS'),
     ('Houseplants', 'Indoor potted plants for home decoration', 'FLOWERS');
 
-INSERT INTO client (email, username, password) VALUES
-    ('alice@example.com', 'Alice', 'passAlice'),
-    ('bob@example.com',   'Bob',   'passBob'),
-    ('carol@example.com', 'Carol', 'passCarol'),
-    ('david@example.com', 'David', 'passDavid'),
-    ('eve@example.com',   'Eve',   'passEve');
+-- Plain text passwords for development
+INSERT INTO client (email, username, password, user_role) VALUES
+    ('alice@example.com', 'Alice', 'passAlice', 'CLIENT'),
+    ('bob@example.com',   'Bob',   'passBob', 'CLIENT'),
+    ('carol@example.com', 'Carol', 'passCarol', 'CLIENT'),
+    ('david@example.com', 'David', 'passDavid', 'ADMIN'),
+    ('eve@example.com',   'Eve',   'passEve', 'CLIENT');
 
 INSERT INTO product (name, description, price, picture_url, catalog_id) VALUES
     ('Tulip Mix',     'Mixed tulip bouquet',         15.99, 'http://pics.example.com/tulip.jpg',    1),

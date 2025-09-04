@@ -3,7 +3,6 @@
   flex-direction: column;
   width: 258px;
 
-
   &:hover {
     cursor: pointer;
 
@@ -36,6 +35,40 @@
 
 .price {
   margin-top: auto;
+  margin-bottom: 12px;
+  font-weight: 600;
+  font-size: var(--font-size-l);
+}
+
+.addToCartButton {
+  background-color: var(--color-text);
+  color: var(--color-background);
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  margin-top: auto;
+
+  &:hover:not(:disabled) {
+    background-color: var(--color-hover);
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  &.adding {
+    background-color: #ffa500;
+  }
+
+  &.added {
+    background-color: #52c41a;
+  }
 }
 
 .image {

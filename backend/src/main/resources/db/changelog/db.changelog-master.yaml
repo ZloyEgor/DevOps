@@ -61,16 +61,6 @@ databaseChangeLog:
             stripComments: false
 
   - changeSet:
-      id: 2025-03-29--01-filling-test-data
-      author: Ivan Nesterov
-      changes:
-        - sqlFile:
-            path: db/scripts/2025-03-29--01-filling-test-data.sql
-            endDelimiter: ";"
-            splitStatements: true
-            stripComments: false
-
-  - changeSet:
       id: 2025-03-30-create-type-user-role
       author: Ivan Nesterov
       changes:
@@ -86,6 +76,26 @@ databaseChangeLog:
       changes:
         - sqlFile:
             path: db/scripts/2025-03-29-add-column-user-role-to-client.sql
+            endDelimiter: ";"
+            splitStatements: true
+            stripComments: false
+
+  - changeSet:
+      id: 2025-03-29--01-filling-test-data
+      author: Ivan Nesterov
+      changes:
+        - sqlFile:
+            path: db/scripts/2025-03-29--01-filling-test-data.sql
+            endDelimiter: ";"
+            splitStatements: true
+            stripComments: false
+
+  - changeSet:
+      id: 2025-12-27-create-table-cart-item
+      author: Egor Stukov
+      changes:
+        - sqlFile:
+            path: db/scripts/2025-12-27-create-table-cart-item.sql
             endDelimiter: ";"
             splitStatements: true
             stripComments: false

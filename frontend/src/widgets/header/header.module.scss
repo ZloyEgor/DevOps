@@ -20,6 +20,136 @@
   font-size: var(--font-size-xl);
 }
 
+.userSection {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.userDetails {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.username {
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.userActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.userLink {
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+}
+
+.logoutButton {
+  background: none;
+  border: 1px solid var(--color-text);
+  color: var(--color-text);
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+  
+  &:hover {
+    background-color: var(--color-text);
+    color: var(--color-background);
+  }
+}
+
+.authLinks {
+  display: flex;
+  align-items: center;
+}
+
+.loginLink {
+  color: var(--color-text);
+  text-decoration: none;
+  padding: 8px 16px;
+  border: 1px solid var(--color-text);
+  border-radius: 4px;
+  transition: all 0.2s;
+  
+  &:hover {
+    background-color: var(--color-text);
+    color: var(--color-background);
+  }
+}
+
+.cartButton {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background-color: #4CAF50;
+  color: white;
+  border-radius: 50%;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background-color: #45a049;
+    transform: scale(1.05);
+  }
+}
+
+.cartText {
+  font-size: 20px;
+}
+
+.cartBadge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background-color: #f44336;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  border: 2px solid var(--color-background);
+}
+
+.adminBadge {
+  background: linear-gradient(45deg, #ff6b35, #ff8e35);
+  color: white;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(255, 107, 53, 0.3);
+}
+
 .userAvatar {
   margin-left: auto;
 }

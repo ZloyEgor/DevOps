@@ -1,0 +1,480 @@
+{
+  "id": null,
+  "uid": "cvetochey-monitoring",
+  "title": "CvetOchey Application Monitoring",
+  "tags": ["cvetochey", "kubernetes", "application"],
+  "style": "dark",
+  "timezone": "browser",
+  "editable": true,
+  "graphTooltip": 0,
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "refresh": "30s",
+  "schemaVersion": 27,
+  "version": 1,
+  "panels": [
+    {
+      "id": 1,
+      "title": "HTTP Requests Rate by Endpoint",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(http_server_requests_seconds_count{job=\"kubernetes-pods\", kubernetes_namespace=\"cvetochey\"}[5m])) by (uri, method)",
+          "legendFormat": "{{method}} {{uri}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "displayName": "Requests/sec"
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": ["lastNotNull"]
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "id": 2,
+      "title": "HTTP Response Time Percentiles",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum(rate(http_server_requests_seconds_bucket{job=\"kubernetes-pods\", kubernetes_namespace=\"cvetochey\"}[5m])) by (le))",
+          "legendFormat": "50th percentile",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{job=\"kubernetes-pods\", kubernetes_namespace=\"cvetochey\"}[5m])) by (le))",
+          "legendFormat": "95th percentile",
+          "refId": "B"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket{job=\"kubernetes-pods\", kubernetes_namespace=\"cvetochey\"}[5m])) by (le))",
+          "legendFormat": "99th percentile",
+          "refId": "C"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "displayName": "Response Time"
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      }
+    },
+    {
+      "id": 3,
+      "title": "System CPU Usage",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "system_cpu_usage{job=\"kubernetes-pods\", kubernetes_namespace=\"cvetochey\"} * 100",
+          "legendFormat": "{{kubernetes_pod_name}} CPU %",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      }
+    },
+    {
+      "id": 4,
+      "title": "JVM Memory Usage",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "jvm_memory_used_bytes{job=\"kubernetes-pods\", kubernetes_namespace=\"cvetochey\", area=\"heap\"} / 1024 / 1024",
+          "legendFormat": "{{kubernetes_pod_name}} Heap Used (MB)",
+          "refId": "A"
+        },
+        {
+          "expr": "jvm_memory_max_bytes{job=\"kubernetes-pods\", kubernetes_namespace=\"cvetochey\", area=\"heap\"} / 1024 / 1024",
+          "legendFormat": "{{kubernetes_pod_name}} Heap Max (MB)",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "decbytes",
+          "min": 0
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      }
+    },
+    {
+      "id": 5,
+      "title": "Deployment Status",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "kube_deployment_status_ready_replicas{namespace=\"cvetochey\", deployment=\"backend\"}",
+          "legendFormat": "Backend Ready",
+          "refId": "A"
+        },
+        {
+          "expr": "kube_deployment_status_replicas{namespace=\"cvetochey\", deployment=\"backend\"}",
+          "legendFormat": "Backend Desired",
+          "refId": "B"
+        },
+        {
+          "expr": "kube_deployment_status_ready_replicas{namespace=\"cvetochey\", deployment=\"frontend\"}",
+          "legendFormat": "Frontend Ready",
+          "refId": "C"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": ["lastNotNull"],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 16
+      }
+    },
+    {
+      "id": 6,
+      "title": "Request Rate by Status Code",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(http_server_requests_seconds_count{job=\"kubernetes-pods\", kubernetes_namespace=\"cvetochey\"}[5m])) by (status)",
+          "legendFormat": "HTTP {{status}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "displayName": "Requests/sec"
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 20
+      }
+    },
+    {
+      "id": 7,
+      "title": "Top Endpoints by Request Count",
+      "type": "table",
+      "targets": [
+        {
+          "expr": "topk(10, sum(rate(http_server_requests_seconds_count{job=\"kubernetes-pods\", kubernetes_namespace=\"cvetochey\"}[5m])) by (uri, method, status))",
+          "format": "table",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "displayMode": "auto",
+            "align": "auto"
+          }
+        }
+      },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "job": true,
+              "kubernetes_namespace": true
+            },
+            "renameByName": {
+              "method": "Method",
+              "uri": "Endpoint",
+              "status": "Status",
+              "Value": "Requests/sec"
+            }
+          }
+        }
+      ],
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 20
+      }
+    },
+    {
+      "id": 8,
+      "title": "Error Rate vs Success Rate",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(http_server_requests_seconds_count{job=\"kubernetes-pods\", kubernetes_namespace=\"cvetochey\", status=~\"4..|5..\"}[5m]))",
+          "legendFormat": "Error Rate (4xx/5xx)",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(http_server_requests_seconds_count{job=\"kubernetes-pods\", kubernetes_namespace=\"cvetochey\", status=~\"2..|3..\"}[5m]))",
+          "legendFormat": "Success Rate (2xx/3xx)",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Error Rate (4xx/5xx)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Success Rate (2xx/3xx)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 28
+      }
+    },
+    {
+      "id": 9,
+      "title": "HPA Status (Backend)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "kube_horizontalpodautoscaler_status_current_replicas{namespace=\"cvetochey\", horizontalpodautoscaler=\"backend-hpa\"}",
+          "legendFormat": "Current Replicas",
+          "refId": "A"
+        },
+        {
+          "expr": "kube_horizontalpodautoscaler_spec_min_replicas{namespace=\"cvetochey\", horizontalpodautoscaler=\"backend-hpa\"}",
+          "legendFormat": "Min Replicas",
+          "refId": "B"
+        },
+        {
+          "expr": "kube_horizontalpodautoscaler_spec_max_replicas{namespace=\"cvetochey\", horizontalpodautoscaler=\"backend-hpa\"}",
+          "legendFormat": "Max Replicas",
+          "refId": "C"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0,
+          "max": 12
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Current Replicas"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Min Replicas"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "yellow"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Max Replicas"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 36
+      }
+    },
+    {
+      "id": 10,
+      "title": "JVM Threads & GC",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "jvm_threads_live_threads{job=\"kubernetes-pods\", kubernetes_namespace=\"cvetochey\"}",
+          "legendFormat": "{{kubernetes_pod_name}} Live Threads",
+          "refId": "A"
+        },
+        {
+          "expr": "rate(jvm_gc_pause_seconds_count{job=\"kubernetes-pods\", kubernetes_namespace=\"cvetochey\"}[5m]) * 60",
+          "legendFormat": "{{kubernetes_pod_name}} GC Events/min",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 36
+      }
+    }
+  ]
+}

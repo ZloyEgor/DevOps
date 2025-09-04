@@ -1,0 +1,724 @@
+{
+	"info": {
+		"_postman_id": "cvet-ochey-api-collection",
+		"name": "CvetOchey API Collection",
+		"description": "Complete API collection for CvetOchey flower shop backend service. This collection includes all CRUD operations for Products, Catalogs, Clients, and Orders.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "apiPrefix",
+			"value": "/cvet-ochey/api/v1",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Products",
+			"item": [
+				{
+					"name": "Get All Products",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}{{apiPrefix}}/products",
+							"host": ["{{baseUrl}}"],
+							"path": ["{{apiPrefix}}", "products"]
+						},
+						"description": "Retrieve all products from the system"
+					}
+				},
+				{
+					"name": "Get Product by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}{{apiPrefix}}/products/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["{{apiPrefix}}", "products", "1"]
+						},
+						"description": "Retrieve a specific product by its ID"
+					}
+				},
+				{
+					"name": "Create Product",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Tulip Bouquet\",\n  \"description\": \"Яркий весенний букет из тюльпанов\",\n  \"price\": 15.99,\n  \"pictureUrl\": \"http://example.com/images/tulips.jpg\",\n  \"catalogId\": 1\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}{{apiPrefix}}/products",
+							"host": ["{{baseUrl}}"],
+							"path": ["{{apiPrefix}}", "products"]
+						},
+						"description": "Create a new product"
+					}
+				},
+				{
+					"name": "Update Product",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Premium Tulip Bouquet\",\n  \"description\": \"Премиальный весенний букет из тюльпанов\",\n  \"price\": 25.99,\n  \"pictureUrl\": \"http://example.com/images/premium-tulips.jpg\",\n  \"catalogId\": 1\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}{{apiPrefix}}/products/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["{{apiPrefix}}", "products", "1"]
+						},
+						"description": "Update an existing product"
+					}
+				},
+				{
+					"name": "Delete Product",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}{{apiPrefix}}/products/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["{{apiPrefix}}", "products", "1"]
+						},
+						"description": "Delete a product by ID"
+					}
+				},
+				{
+					"name": "Get Products by Catalog ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}{{apiPrefix}}/products/catalog/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["{{apiPrefix}}", "products", "catalog", "1"]
+						},
+						"description": "Get all products belonging to a specific catalog"
+					}
+				},
+				{
+					"name": "Search Products by Name",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}{{apiPrefix}}/products/search?name=tulip",
+							"host": ["{{baseUrl}}"],
+							"path": ["{{apiPrefix}}", "products", "search"],
+							"query": [
+								{
+									"key": "name",
+									"value": "tulip"
+								}
+							]
+						},
+						"description": "Search products by name (case insensitive)"
+					}
+				},
+				{
+					"name": "Get Products by Price Range",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}{{apiPrefix}}/products/price-range?minPrice=10.0&maxPrice=50.0",
+							"host": ["{{baseUrl}}"],
+							"path": ["{{apiPrefix}}", "products", "price-range"],
+							"query": [
+								{
+									"key": "minPrice",
+									"value": "10.0"
+								},
+								{
+									"key": "maxPrice",
+									"value": "50.0"
+								}
+							]
+						},
+						"description": "Get products within a specific price range"
+					}
+				}
+			],
+			"description": "All product-related endpoints for CRUD operations and filtering"
+		},
+		{
+			"name": "Catalogs",
+			"item": [
+				{
+					"name": "Get All Catalogs",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}{{apiPrefix}}/catalog",
+							"host": ["{{baseUrl}}"],
+							"path": ["{{apiPrefix}}", "catalog"]
+						},
+						"description": "Retrieve all catalogs from the system"
+					}
+				},
+				{
+					"name": "Get Catalog by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}{{apiPrefix}}/catalog/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["{{apiPrefix}}", "catalog", "1"]
+						},
+						"description": "Retrieve a specific catalog by its ID"
+					}
+				},
+				{
+					"name": "Create Catalog",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Spring Flowers\",\n  \"description\": \"Различные весенние цветы, букеты и композиции\",\n  \"catalogType\": \"FLOWERS\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}{{apiPrefix}}/catalog",
+							"host": ["{{baseUrl}}"],
+							"path": ["{{apiPrefix}}", "catalog"]
+						},
+						"description": "Create a new catalog"
+					}
+				},
+				{
+					"name": "Update Catalog",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Premium Spring Flowers\",\n  \"description\": \"Премиальные весенние цветы, букеты и композиции\",\n  \"catalogType\": \"FLOWERS\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}{{apiPrefix}}/catalog/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["{{apiPrefix}}", "catalog", "1"]
+						},
+						"description": "Update an existing catalog"
+					}
+				},
+				{
+					"name": "Delete Catalog",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}{{apiPrefix}}/catalog/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["{{apiPrefix}}", "catalog", "1"]
+						},
+						"description": "Delete a catalog by ID"
+					}
+				},
+				{
+					"name": "Get Catalogs by Type",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}{{apiPrefix}}/catalog/byType/FLOWERS",
+							"host": ["{{baseUrl}}"],
+							"path": ["{{apiPrefix}}", "catalog", "byType", "FLOWERS"]
+						},
+						"description": "Get all catalogs of a specific type (FLOWERS)"
+					}
+				}
+			],
+			"description": "All catalog-related endpoints for managing product categories"
+		},
+		{
+			"name": "Clients",
+			"item": [
+				{
+					"name": "Get All Clients",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}{{apiPrefix}}/clients",
+							"host": ["{{baseUrl}}"],
+							"path": ["{{apiPrefix}}", "clients"]
+						},
+						"description": "Retrieve all clients from the system"
+					}
+				},
+				{
+					"name": "Get Client by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}{{apiPrefix}}/clients/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["{{apiPrefix}}", "clients", "1"]
+						},
+						"description": "Retrieve a specific client by their ID"
+					}
+				},
+				{
+					"name": "Create Client",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"alice@example.com\",\n  \"username\": \"Alice\",\n  \"password\": \"P@ssw0rd!\",\n  \"userRole\": \"CLIENT\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}{{apiPrefix}}/clients",
+							"host": ["{{baseUrl}}"],
+							"path": ["{{apiPrefix}}", "clients"]
+						},
+						"description": "Create a new client account"
+					}
+				},
+				{
+					"name": "Update Client",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"alice.updated@example.com\",\n  \"username\": \"AliceUpdated\",\n  \"password\": \"NewP@ssw0rd!\",\n  \"userRole\": \"CLIENT\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}{{apiPrefix}}/clients/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["{{apiPrefix}}", "clients", "1"]
+						},
+						"description": "Update an existing client"
+					}
+				},
+				{
+					"name": "Delete Client",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}{{apiPrefix}}/clients/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["{{apiPrefix}}", "clients", "1"]
+						},
+						"description": "Delete a client by ID"
+					}
+				},
+				{
+					"name": "Get Client by Email",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}{{apiPrefix}}/clients/email/alice@example.com",
+							"host": ["{{baseUrl}}"],
+							"path": ["{{apiPrefix}}", "clients", "email", "alice@example.com"]
+						},
+						"description": "Find a client by their email address"
+					}
+				},
+				{
+					"name": "Get Client by Username",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}{{apiPrefix}}/clients/username/Alice",
+							"host": ["{{baseUrl}}"],
+							"path": ["{{apiPrefix}}", "clients", "username", "Alice"]
+						},
+						"description": "Find a client by their username"
+					}
+				},
+				{
+					"name": "Get Clients by Role",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}{{apiPrefix}}/clients/role/CLIENT",
+							"host": ["{{baseUrl}}"],
+							"path": ["{{apiPrefix}}", "clients", "role", "CLIENT"]
+						},
+						"description": "Get all clients with a specific role (CLIENT or ADMIN)"
+					}
+				}
+			],
+			"description": "All client-related endpoints for user management"
+		},
+		{
+			"name": "Orders",
+			"item": [
+				{
+					"name": "Get All Orders",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}{{apiPrefix}}/orders",
+							"host": ["{{baseUrl}}"],
+							"path": ["{{apiPrefix}}", "orders"]
+						},
+						"description": "Retrieve all orders from the system"
+					}
+				},
+				{
+					"name": "Get Order by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}{{apiPrefix}}/orders/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["{{apiPrefix}}", "orders", "1"]
+						},
+						"description": "Retrieve a specific order by its ID"
+					}
+				},
+				{
+					"name": "Create Order",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"totalPrice\": 49.99,\n  \"clientId\": 1,\n  \"productId\": 1\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}{{apiPrefix}}/orders",
+							"host": ["{{baseUrl}}"],
+							"path": ["{{apiPrefix}}", "orders"]
+						},
+						"description": "Create a new order"
+					}
+				},
+				{
+					"name": "Update Order",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"totalPrice\": 59.99,\n  \"clientId\": 1,\n  \"productId\": 2\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}{{apiPrefix}}/orders/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["{{apiPrefix}}", "orders", "1"]
+						},
+						"description": "Update an existing order"
+					}
+				},
+				{
+					"name": "Delete Order",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}{{apiPrefix}}/orders/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["{{apiPrefix}}", "orders", "1"]
+						},
+						"description": "Delete an order by ID"
+					}
+				},
+				{
+					"name": "Get Orders by Client ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}{{apiPrefix}}/orders/client/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["{{apiPrefix}}", "orders", "client", "1"]
+						},
+						"description": "Get all orders for a specific client"
+					}
+				},
+				{
+					"name": "Get Orders by Product ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}{{apiPrefix}}/orders/product/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["{{apiPrefix}}", "orders", "product", "1"]
+						},
+						"description": "Get all orders for a specific product"
+					}
+				},
+				{
+					"name": "Get Orders by Price Range",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}{{apiPrefix}}/orders/price-range?minPrice=20.0&maxPrice=100.0",
+							"host": ["{{baseUrl}}"],
+							"path": ["{{apiPrefix}}", "orders", "price-range"],
+							"query": [
+								{
+									"key": "minPrice",
+									"value": "20.0"
+								},
+								{
+									"key": "maxPrice",
+									"value": "100.0"
+								}
+							]
+						},
+						"description": "Get orders within a specific price range"
+					}
+				}
+			],
+			"description": "All order-related endpoints for order management"
+		},
+		{
+			"name": "Health & Monitoring",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/actuator/health",
+							"host": ["{{baseUrl}}"],
+							"path": ["actuator", "health"]
+						},
+						"description": "Check the health status of the application"
+					}
+				},
+				{
+					"name": "Application Info",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/actuator/info",
+							"host": ["{{baseUrl}}"],
+							"path": ["actuator", "info"]
+						},
+						"description": "Get application information"
+					}
+				},
+				{
+					"name": "Prometheus Metrics",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/actuator/prometheus",
+							"host": ["{{baseUrl}}"],
+							"path": ["actuator", "prometheus"]
+						},
+						"description": "Get Prometheus metrics for monitoring"
+					}
+				}
+			],
+			"description": "Health check and monitoring endpoints"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}

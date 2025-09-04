@@ -1,0 +1,155 @@
+name: Frontend Docker Build and Deploy
+
+on:
+  push:
+    branches: [ master, dev ]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-deploy.yml'
+  pull_request:
+    branches: [ master ]
+    paths:
+      - 'frontend/**'
+
+env:
+  REGISTRY: cr.yandex
+  REGISTRY_ID: crpqt390b8gk59ipqid8
+  IMAGE_NAME: cvetochey-frontend
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      with:
+        platforms: linux/amd64,linux/arm64
+
+    - name: Log in to Yandex Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: json_key
+        password: ${{ secrets.YC_SERVICE_ACCOUNT_KEY }}
+
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.REGISTRY_ID }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' }}
+        labels: |
+          org.opencontainers.image.title=${{ env.IMAGE_NAME }}
+          org.opencontainers.image.description=CvetOchey Frontend Application
+          org.opencontainers.image.vendor=CvetOchey
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./frontend
+        platforms: linux/amd64,linux/arm64
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        build-args: |
+          BUILDPLATFORM=linux/amd64
+
+    - name: Install and configure Yandex Cloud CLI
+      if: github.ref == 'refs/heads/master'
+      run: |
+        # Install kubectl
+        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+        chmod +x kubectl
+        sudo mv kubectl /usr/local/bin/
+        
+        # Install yc CLI
+        curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash
+        echo "$HOME/yandex-cloud/bin" >> $GITHUB_PATH
+        
+        # Verify installations
+        kubectl version --client
+        $HOME/yandex-cloud/bin/yc version
+
+    - name: Configure Yandex Cloud credentials
+      if: github.ref == 'refs/heads/master'
+      run: |
+        # Configure yc
+        echo "${{ secrets.YC_SERVICE_ACCOUNT_KEY }}" | base64 -d > key.json
+        $HOME/yandex-cloud/bin/yc config set service-account-key key.json
+        $HOME/yandex-cloud/bin/yc config set cloud-id ${{ secrets.YC_CLOUD_ID }}
+        $HOME/yandex-cloud/bin/yc config set folder-id ${{ secrets.YC_FOLDER_ID }}
+        
+        # Verify configuration
+        $HOME/yandex-cloud/bin/yc config list
+
+    - name: Deploy to Kubernetes
+      if: github.ref == 'refs/heads/master'
+      run: |
+        # Get cluster credentials
+        $HOME/yandex-cloud/bin/yc managed-kubernetes cluster get-credentials cvetochey-cluster --external
+        
+        # Verify cluster connection
+        kubectl cluster-info
+        kubectl get nodes
+        
+        # Check current deployment
+        kubectl get deployment frontend -n cvetochey -o wide
+        
+        # Update deployment with new image
+        kubectl set image deployment/frontend frontend=${{ env.REGISTRY }}/${{ env.REGISTRY_ID }}/${{ env.IMAGE_NAME }}:latest -n cvetochey
+        
+        # Wait for rollout to complete
+        kubectl rollout status deployment/frontend -n cvetochey --timeout=300s
+        
+        # Verify deployment
+        kubectl get pods -n cvetochey -l app=frontend
+        kubectl describe deployment frontend -n cvetochey
+
+    - name: Verify deployment health
+      if: github.ref == 'refs/heads/master'
+      run: |
+        # Wait for pods to be ready
+        kubectl wait --for=condition=ready pod -l app=frontend -n cvetochey --timeout=300s
+        
+        # Check pod logs for any startup errors
+        echo "=== Frontend Pod Logs ==="
+        kubectl logs -l app=frontend -n cvetochey --tail=50
+        
+        # Test frontend accessibility
+        echo "=== Testing Frontend Accessibility ==="
+        kubectl get svc -n cvetochey
+        
+        # Get pod IP for direct health check (if health endpoint exists)
+        POD_NAME=$(kubectl get pods -n cvetochey -l app=frontend -o jsonpath='{.items[0].metadata.name}')
+        echo "Testing frontend on pod: $POD_NAME"
+        kubectl exec $POD_NAME -n cvetochey -- curl -f http://localhost:3000/ || echo "Frontend direct check failed (may be normal)"
+        
+        # Test via public IP (if available)
+        echo "=== Testing via Load Balancer ==="
+        curl -f -m 10 http://89.169.138.79/ || echo "Public frontend check failed"
+
+    - name: Cleanup
+      if: always()
+      run: |
+        # Clean up sensitive files
+        rm -f key.json
+        
+        # Show final status
+        if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
+          echo "=== Final Deployment Status ==="
+          kubectl get deployment frontend -n cvetochey
+          kubectl get pods -n cvetochey -l app=frontend
+        fi
