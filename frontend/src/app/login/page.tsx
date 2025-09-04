@@ -33,18 +33,12 @@ const LoginPage: FC = () => {
         <div className={styles.container}>
             <form onSubmit={handleSubmit} className={styles.form}>
                 {error && <div className={styles.error}>{error}</div>}
-                <input 
-                    type="email" 
-                    name="email" 
-                    placeholder="Email" 
-                    required 
-                    disabled={loading}
-                />
-                <input 
-                    type="password" 
-                    name="password" 
-                    placeholder="Password" 
-                    required 
+                <input type="email" name="email" placeholder="Email" required disabled={loading} />
+                <input
+                    type="password"
+                    name="password"
+                    placeholder="Password"
+                    required
                     disabled={loading}
                 />
                 <button type="submit" className={styles.loginButton} disabled={loading}>

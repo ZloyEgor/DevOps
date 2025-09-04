@@ -2,10 +2,27 @@ version: '3.8'
 
 services:
   frontend:
-    image: vezon/cvetochey
-    container_name: frontend
+    image: cr.yandex/crpqt390b8gk59ipqid8/cvetochey-frontend:latest
+    container_name: cvetochey-frontend
+    restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
-      - BACKEND_URL=http://84.201.131.26:8080
-    restart: unless-stopped
+      NEXT_PUBLIC_API_URL: http://backend-service:8080
+      NODE_ENV: production
+      NEXT_TELEMETRY_DISABLED: 1
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - cvetochey-network
+
+networks:
+  cvetochey-network:
+    driver: bridge
+    external: true

@@ -47,7 +47,6 @@ export const NewProductCard: FC<NewProductCardProps> = ({ catalogId, onCancel, o
                 setShowSuccess(false);
                 onCreate(newProduct);
             }, 1000);
-
         } catch (error) {
             console.error('Failed to create product:', error);
             const errorMessage =

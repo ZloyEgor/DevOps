@@ -50,9 +50,7 @@ export const FlowerCatalog: FC<FlowerCatalogProps> = ({ catalog }) => {
     };
 
     const handleProductDelete = (deletedProductId: number) => {
-        setCatalogProducts((prev) =>
-            prev.filter((product) => product.id !== deletedProductId)
-        );
+        setCatalogProducts((prev) => prev.filter((product) => product.id !== deletedProductId));
     };
 
     const handleStartCreate = () => {
@@ -73,14 +71,14 @@ export const FlowerCatalog: FC<FlowerCatalogProps> = ({ catalog }) => {
             <summary className={styles.title}>{name}</summary>
             <div className={styles.list} onClick={onListClick}>
                 {catalogProducts.map((item) => (
-                    <EditableProductCard 
-                        key={item.id} 
-                        item={item} 
+                    <EditableProductCard
+                        key={item.id}
+                        item={item}
                         onUpdate={handleProductUpdate}
                         onDelete={handleProductDelete}
                     />
                 ))}
-                
+
                 {/* New Product Card */}
                 {isCreating && (
                     <NewProductCard
@@ -89,7 +87,7 @@ export const FlowerCatalog: FC<FlowerCatalogProps> = ({ catalog }) => {
                         onCreate={handleProductCreate}
                     />
                 )}
-                
+
                 {/* Create Button */}
                 {isAdmin && !isCreating && (
                     <div className={styles.createButtonContainer}>

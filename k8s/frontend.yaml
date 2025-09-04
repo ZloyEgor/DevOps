@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: cr.yandex/crp123456789/cvetochey-frontend:latest # Replace with your registry
+        image: cr.yandex/crpqt390b8gk59ipqid8/cvetochey-frontend:latest
         ports:
         - containerPort: 3000
         env:

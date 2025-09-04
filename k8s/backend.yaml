@@ -43,7 +43,7 @@ spec:
     spec:
       containers:
       - name: backend
-        image: cr.yandex/crp123456789/cvetochey-backend:latest # Replace with your registry
+        image: cr.yandex/crpqt390b8gk59ipqid8/cvetochey-backend:latest
         ports:
         - containerPort: 8080
         env:

@@ -85,7 +85,10 @@ class ProductService {
             if (response.status === 409) {
                 // Handle foreign key constraint violation
                 const errorData = await response.json();
-                throw new Error(errorData.message || 'Cannot delete product - it is referenced by existing orders');
+                throw new Error(
+                    errorData.message ||
+                        'Cannot delete product - it is referenced by existing orders'
+                );
             }
             throw new Error('Failed to delete product');
         }
@@ -99,17 +102,14 @@ class ProductService {
             throw new Error('Authentication required');
         }
 
-        const response = await fetch(
-            `${API_CONFIG.FULL_API_URL}${API_CONFIG.ENDPOINTS.PRODUCTS}`,
-            {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify(productData),
-            }
-        );
+        const response = await fetch(`${API_CONFIG.FULL_API_URL}${API_CONFIG.ENDPOINTS.PRODUCTS}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(productData),
+        });
 
         if (!response.ok) {
             if (response.status === 401) {

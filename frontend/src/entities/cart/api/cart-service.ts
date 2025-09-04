@@ -23,16 +23,16 @@ class CartService {
 
     private getCartFromStorage(): LocalCartItem[] {
         if (typeof window === 'undefined') return [];
-        
+
         try {
             const cartData = localStorage.getItem(this.CART_KEY);
             if (!cartData) return [];
-            
+
             const items = JSON.parse(cartData);
             // Convert addedAt strings back to Date objects
             return items.map((item: any) => ({
                 ...item,
-                addedAt: new Date(item.addedAt)
+                addedAt: new Date(item.addedAt),
             }));
         } catch (error) {
             console.error('Error loading cart from localStorage:', error);
@@ -42,7 +42,7 @@ class CartService {
 
     private saveCartToStorage(items: LocalCartItem[]): void {
         if (typeof window === 'undefined') return;
-        
+
         try {
             localStorage.setItem(this.CART_KEY, JSON.stringify(items));
             this.emitCartChange();
@@ -61,7 +61,7 @@ class CartService {
     // Enhanced method that takes full product data
     addProductToCart(product: Product, quantity: number = 1): void {
         const currentCart = this.getCartFromStorage();
-        const existingItem = currentCart.find(item => item.productId === product.id);
+        const existingItem = currentCart.find((item) => item.productId === product.id);
 
         if (existingItem) {
             // Update quantity if item already exists
@@ -73,7 +73,7 @@ class CartService {
                 productId: product.id,
                 quantity,
                 product,
-                addedAt: new Date()
+                addedAt: new Date(),
             };
             currentCart.push(newItem);
         }
@@ -83,7 +83,7 @@ class CartService {
 
     removeFromCart(cartItemId: string): void {
         const currentCart = this.getCartFromStorage();
-        const updatedCart = currentCart.filter(item => item.id !== cartItemId);
+        const updatedCart = currentCart.filter((item) => item.id !== cartItemId);
         this.saveCartToStorage(updatedCart);
     }
 
@@ -94,8 +94,8 @@ class CartService {
         }
 
         const currentCart = this.getCartFromStorage();
-        const item = currentCart.find(item => item.id === cartItemId);
-        
+        const item = currentCart.find((item) => item.id === cartItemId);
+
         if (item) {
             item.quantity = quantity;
             this.saveCartToStorage(currentCart);
@@ -107,7 +107,7 @@ class CartService {
     }
 
     getCartItemByProductId(productId: NumericId): LocalCartItem | undefined {
-        return this.getCartFromStorage().find(item => item.productId === productId);
+        return this.getCartFromStorage().find((item) => item.productId === productId);
     }
 
     getTotalItems(): number {
@@ -115,7 +115,10 @@ class CartService {
     }
 
     getTotalPrice(): number {
-        return this.getCartFromStorage().reduce((total, item) => total + (item.product.price * item.quantity), 0);
+        return this.getCartFromStorage().reduce(
+            (total, item) => total + item.product.price * item.quantity,
+            0
+        );
     }
 
     clearCart(): void {
@@ -135,7 +138,7 @@ class CartService {
             clientId: 1, // Dummy client ID
             product: item.product,
             quantity: item.quantity,
-            totalPrice: item.product.price * item.quantity
+            totalPrice: item.product.price * item.quantity,
         }));
     }
 }

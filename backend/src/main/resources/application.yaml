@@ -26,12 +26,26 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,prometheus
+        include: health,info,prometheus,metrics
   metrics:
     tags:
       application: backend
+      service: cvetochey-backend
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      percentiles:
+        http.server.requests: 0.5, 0.95, 0.99
+    web:
+      server:
+        request:
+          autotime:
+            enabled: true
+            percentiles: 0.5, 0.95, 0.99
   endpoint:
     prometheus:
+      enabled: true
+    metrics:
       enabled: true
 
 jwt:

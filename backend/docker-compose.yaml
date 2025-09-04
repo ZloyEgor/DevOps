@@ -2,29 +2,64 @@ version: "3.8"
 
 services:
   db:
-    image: postgres:13
+    image: postgres:15-alpine
     container_name: cvet-ochey-db
+    restart: unless-stopped
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=cvetochey
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: cvetochey
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
     ports:
       - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - /etc/localtime:/etc/localtime:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d cvetochey"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - cvetochey-network
 
   backend:
-    # image: nesterrovv/cvet-ochey:1.0
-    build: . 
+    build:
+      context: .
+      platforms:
+        - linux/amd64
+        - linux/arm64
     container_name: cvet-ochey-backend
+    restart: unless-stopped
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
-      - DATABASE_DRIVER=jdbc:postgresql
-      - DATABASE_HOST=db
-      - DATABASE_PORT=5432
-      - DATABASE_LOGIN=postgres
-      - DATABASE_PASSWORD=postgres
-      - DATABASE_NAME=cvetochey
-
-    # Пробрасываем порт 8080 наружу
+      DATABASE_DRIVER: jdbc:postgresql
+      DATABASE_HOST: db
+      DATABASE_PORT: 5432
+      DATABASE_LOGIN: postgres
+      DATABASE_PASSWORD: postgres
+      DATABASE_NAME: cvetochey
+      JAVA_OPTS: "-XX:+UseContainerSupport -XX:+UseG1GC -XX:MaxRAMPercentage=75.0"
     ports:
       - "8080:8080"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - cvetochey-network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  cvetochey-network:
+    driver: bridge

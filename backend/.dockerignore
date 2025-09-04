@@ -1,0 +1,65 @@
+# Maven
+target/
+!target/cvet-ochey-*.jar
+.mvn/wrapper/maven-wrapper.jar
+.mvn/
+
+# IDE
+.vscode/
+.idea/
+*.iws
+*.iml
+*.ipr
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment files
+.env
+.env.*
+
+# Testing
+.coverage
+test-results/
+
+# Temporary files
+*.tmp
+*.temp
+
+# Git
+.git
+.gitignore
+
+# Documentation
+README.md
+*.md
+
+# Docker
+Dockerfile*
+docker-compose*
+
+# Spring Boot DevTools
+.spring-boot-devtools.properties
+
+# Gradle (if used)
+.gradle/
+build/
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# NetBeans
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
