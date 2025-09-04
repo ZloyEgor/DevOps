@@ -5,7 +5,7 @@ ARG BUILDPLATFORM=linux/amd64
 ARG TARGETPLATFORM=linux/amd64
 
 # Build stage
-FROM --platform=$BUILDPLATFORM maven:3.9.4-eclipse-temurin-21-alpine AS builder
+FROM --platform=$BUILDPLATFORM maven:3.9.4-eclipse-temurin-21-alpine AS builderаve 
 
 WORKDIR /app
 
