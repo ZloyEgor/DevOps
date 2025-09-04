@@ -44,7 +44,7 @@ jobs:
         tags: |
           type=ref,event=branch
           type=ref,event=pr
-          type=sha,prefix={{branch}}-
+          type=sha,prefix=commit-
           type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' }}
         labels: |
           org.opencontainers.image.title=${{ env.IMAGE_NAME }}
