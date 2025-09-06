@@ -1,8 +1,10 @@
 name: Backend Docker Build and Deploy
 
 on:
-  # Trigger on pushes to master and dev branches
-  push:
+  # Wait for Backend CI workflow to complete successfully
+  workflow_run:
+    workflows: ["Backend CI"]
+    types: [completed]
     branches: [ master, dev ]
   # Also allow manual trigger for testing
   workflow_dispatch:
@@ -15,8 +17,8 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    # Only run on master/dev branches or manual trigger
-    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev' || github.event_name == 'workflow_dispatch'
+    # Only run if CI workflow succeeded or manual trigger
+    if: (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') || github.event_name == 'workflow_dispatch'
     permissions:
       contents: read
       packages: write
@@ -63,8 +65,8 @@ jobs:
           type=ref,event=branch
           type=ref,event=pr
           type=sha,prefix=commit-
-          type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' }}
-          type=raw,value=dev,enable=${{ github.ref == 'refs/heads/dev' }}
+          type=raw,value=latest,enable=${{ github.event.workflow_run.head_branch == 'master' || github.ref == 'refs/heads/master' }}
+          type=raw,value=dev,enable=${{ github.event.workflow_run.head_branch == 'dev' || github.ref == 'refs/heads/dev' }}
         labels: |
           org.opencontainers.image.title=${{ env.IMAGE_NAME }}
           org.opencontainers.image.description=CvetOchey Backend Service
@@ -94,8 +96,8 @@ jobs:
         message: |
           🚀 **Backend Deployment Started**
           
-          **Branch:** `${{ github.ref_name }}`
-          **Image Tag:** `${{ github.ref_name == 'dev' && 'dev' || 'latest' }}`
+          **Branch:** `${{ github.event.workflow_run.head_branch || github.ref_name }}`
+          **Image Tag:** `${{ (github.event.workflow_run.head_branch == 'dev' || github.ref_name == 'dev') && 'dev' || 'latest' }}`
           **Commit:** [${{ github.sha }}](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})
           **Workflow:** [View Progress](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
           
@@ -144,7 +146,8 @@ jobs:
         
         # Update deployment with new image
         # Determine image tag based on branch
-        if [[ "${{ github.ref_name }}" == "dev" ]]; then
+        BRANCH="${{ github.event.workflow_run.head_branch || github.ref_name }}"
+        if [[ "$BRANCH" == "dev" ]]; then
           IMAGE_TAG="dev"
         else
           IMAGE_TAG="latest"
@@ -185,7 +188,8 @@ jobs:
         rm -f key.json
         
         # Show final status
-        if [[ "${{ github.ref_name }}" == "master" ]]; then
+        BRANCH="${{ github.event.workflow_run.head_branch || github.ref_name }}"
+        if [[ "$BRANCH" == "master" ]]; then
           echo "=== Final Deployment Status ==="
           kubectl get deployment backend -n cvetochey
           kubectl get pods -n cvetochey -l app=backend
@@ -200,9 +204,9 @@ jobs:
         message: |
           ✅ **Backend Deployment Successful!**
           
-          **Branch:** `${{ github.ref_name }}`
-          **Environment:** `${{ github.ref_name == 'master' && 'Production' || 'Development' }}`
-          **Image:** `cvetochey-backend:${{ github.ref_name == 'dev' && 'dev' || 'latest' }}`
+          **Branch:** `${{ github.event.workflow_run.head_branch || github.ref_name }}`
+          **Environment:** `${{ (github.event.workflow_run.head_branch == 'master' || github.ref_name == 'master') && 'Production' || 'Development' }}`
+          **Image:** `cvetochey-backend:${{ (github.event.workflow_run.head_branch == 'dev' || github.ref_name == 'dev') && 'dev' || 'latest' }}`
           
           🎉 Backend is now live and healthy!
           📊 [View Logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
@@ -217,7 +221,7 @@ jobs:
         message: |
           ❌ **Backend Deployment Failed!**
           
-          **Branch:** `${{ github.ref_name }}`
+          **Branch:** `${{ github.event.workflow_run.head_branch || github.ref_name }}`
           **Error:** Deployment to Kubernetes failed
           **Commit:** [${{ github.sha }}](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})
           
