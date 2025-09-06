@@ -11,7 +11,8 @@
     "lint:fix": "next lint . --fix",
     "format": "prettier --write .",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
   "dependencies": {
     "@ant-design/nextjs-registry": "^1.0.2",
