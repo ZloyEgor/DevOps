@@ -52,8 +52,6 @@ class CartService {
     }
 
     addToCart(productId: NumericId, quantity: number = 1): void {
-        // For now, we'll need the product data. We'll enhance this later.
-        // This method will be updated when we integrate with product cards
         console.log(`Adding product ${productId} with quantity ${quantity} to cart`);
         this.emitCartChange();
     }

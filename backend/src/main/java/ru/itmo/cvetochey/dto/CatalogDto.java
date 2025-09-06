@@ -24,7 +24,7 @@ public class CatalogDto {
   private CatalogType catalogType;
 
   @Schema(
-      description = "Список продуктов, относящихся к этому каталогу",
+      description = "Список продуктов, относящихся к каталогу",
       implementation = ProductDto.class)
   private List<ProductDto> productDtos;
 }
