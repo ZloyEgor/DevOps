@@ -1,0 +1,21 @@
+name: Test PR Trigger
+
+on:
+  pull_request:
+    branches: [ master, dev ]
+    types: [opened, synchronize, reopened]
+
+jobs:
+  test:
+    name: Test PR Workflow
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Test step
+        run: |
+          echo "✅ PR workflow is working!"
+          echo "Event: ${{ github.event_name }}"
+          echo "Base ref: ${{ github.base_ref }}"
+          echo "Head ref: ${{ github.head_ref }}"
