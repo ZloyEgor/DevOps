@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
-@SuppressWarnings("java:S5122") // Suppress "Having a permissive Cross-Origin Resource Sharing policy is security-sensitive"
+@SuppressWarnings("java:S5122") // Suppress "Having a permissive Cross-Origin Resource Sharing policy"
 public class CorsDisableFilter implements Filter {
 
   @Override
