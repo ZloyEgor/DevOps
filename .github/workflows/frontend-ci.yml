@@ -25,18 +25,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+          run_install: false
+
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'pnpm'
           cache-dependency-path: frontend/pnpm-lock.yaml
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 8
-          run_install: false
 
       - name: Install dependencies
         working-directory: ./frontend
@@ -53,18 +53,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+          run_install: false
+
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'pnpm'
           cache-dependency-path: frontend/pnpm-lock.yaml
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 8
-          run_install: false
 
       - name: Install dependencies
         working-directory: ./frontend
@@ -92,18 +92,18 @@ jobs:
         with:
           fetch-depth: 0  # Shallow clones should be disabled for better analysis
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+          run_install: false
+
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'pnpm'
           cache-dependency-path: frontend/pnpm-lock.yaml
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 8
-          run_install: false
 
       - name: Install dependencies
         working-directory: ./frontend
@@ -222,18 +222,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+          run_install: false
+
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'pnpm'
           cache-dependency-path: frontend/pnpm-lock.yaml
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 8
-          run_install: false
 
       - name: Install dependencies
         working-directory: ./frontend
