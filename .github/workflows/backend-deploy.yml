@@ -1,9 +1,9 @@
 name: Backend Docker Build and Deploy
 
 on:
-  # Wait for CI workflow to complete successfully
+  # Wait for Backend CI workflow to complete successfully
   workflow_run:
-    workflows: ["CI"]
+    workflows: ["Backend CI"]
     types:
       - completed
     branches: [ master, dev ]

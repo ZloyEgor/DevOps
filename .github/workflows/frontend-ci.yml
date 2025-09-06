@@ -1,0 +1,251 @@
+name: Frontend CI
+
+on:
+  push:
+    branches:
+      - master
+      - dev
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-ci.yml'
+  pull_request:
+    branches:
+      - master
+      - dev
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-ci.yml'
+
+jobs:
+  frontend-lint:
+    name: Frontend Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+          run_install: false
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Run linters
+        working-directory: ./frontend
+        run: pnpm run lint
+
+  frontend-test:
+    name: Frontend Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+          run_install: false
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests with coverage
+        working-directory: ./frontend
+        run: pnpm run test:coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./frontend/coverage/lcov.info
+          flags: frontend
+          name: frontend-coverage
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  frontend-sonar:
+    name: Frontend SonarQube Analysis
+    runs-on: ubuntu-latest
+    needs: [frontend-test]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for better analysis
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+          run_install: false
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests for SonarQube
+        working-directory: ./frontend
+        run: pnpm run test:coverage
+
+      - name: Setup SonarQube access via port-forward
+        run: |
+          # Install kubectl
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/
+          
+          # Install yc CLI
+          curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash
+          echo "$HOME/yandex-cloud/bin" >> $GITHUB_PATH
+
+      - name: Configure Yandex Cloud credentials
+        run: |
+          # Configure yc
+          echo "${{ secrets.YC_SERVICE_ACCOUNT_KEY }}" | base64 -d > key.json
+          $HOME/yandex-cloud/bin/yc config set service-account-key key.json
+          $HOME/yandex-cloud/bin/yc config set cloud-id ${{ secrets.YC_CLOUD_ID }}
+          $HOME/yandex-cloud/bin/yc config set folder-id ${{ secrets.YC_FOLDER_ID }}
+
+      - name: Start SonarQube port-forward
+        run: |
+          # Get cluster credentials
+          $HOME/yandex-cloud/bin/yc managed-kubernetes cluster get-credentials cvetochey-cluster --external
+          
+          # Start port-forward in background
+          kubectl port-forward -n sonarqube svc/sonarqube 9000:9000 &
+          PORT_FORWARD_PID=$!
+          echo "PORT_FORWARD_PID=$PORT_FORWARD_PID" >> $GITHUB_ENV
+          
+          # Wait for port-forward to be ready
+          sleep 10
+          
+          # Test connection
+          curl -s http://localhost:9000/api/system/status || echo "SonarQube not ready yet"
+
+      - name: Run SonarQube analysis
+        working-directory: ./frontend
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          # Set branch name for SonarQube analysis
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BRANCH_NAME="${{ github.base_ref }}"
+            PR_KEY="${{ github.event.pull_request.number }}"
+            echo "Analyzing PR #$PR_KEY targeting: $BRANCH_NAME"
+          else
+            BRANCH_NAME="${{ github.ref_name }}"
+            echo "Analyzing branch: $BRANCH_NAME"
+          fi
+          
+          # Use localhost with port-forward
+          SONAR_URL="http://localhost:9000"
+          
+          # Use different project keys based on target branch
+          if [ "$BRANCH_NAME" = "dev" ]; then
+            PROJECT_KEY="cvetochey-frontend-dev"
+            VERSION_PREFIX="dev"
+          elif [ "$BRANCH_NAME" = "master" ]; then
+            PROJECT_KEY="cvetochey-frontend"
+            VERSION_PREFIX="master"
+          else
+            PROJECT_KEY="cvetochey-frontend"
+            VERSION_PREFIX="feature"
+          fi
+          
+          # Run SonarQube analysis
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            # For PRs, analyze as a branch of the target project
+            npx sonar-scanner \
+              -Dsonar.projectKey="$PROJECT_KEY" \
+              -Dsonar.host.url="$SONAR_URL" \
+              -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+              -Dsonar.qualitygate.wait=true \
+              -Dsonar.projectVersion="pr-$PR_KEY-${{ github.sha }}" \
+              -Dsonar.pullrequest.key="$PR_KEY" \
+              -Dsonar.pullrequest.branch="${{ github.head_ref }}" \
+              -Dsonar.pullrequest.base="$BRANCH_NAME" || \
+            npx sonar-scanner \
+              -Dsonar.projectKey="$PROJECT_KEY" \
+              -Dsonar.host.url="$SONAR_URL" \
+              -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+              -Dsonar.qualitygate.wait=true \
+              -Dsonar.projectVersion="pr-$PR_KEY-${{ github.sha }}"
+          else
+            # For direct pushes
+            npx sonar-scanner \
+              -Dsonar.projectKey="$PROJECT_KEY" \
+              -Dsonar.host.url="$SONAR_URL" \
+              -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+              -Dsonar.qualitygate.wait=true \
+              -Dsonar.projectVersion="$VERSION_PREFIX-${{ github.sha }}"
+          fi
+
+      - name: Cleanup port-forward
+        if: always()
+        run: |
+          if [ ! -z "$PORT_FORWARD_PID" ]; then
+            kill $PORT_FORWARD_PID || true
+          fi
+
+  frontend-build:
+    name: Frontend Build (Next.js)
+    runs-on: ubuntu-latest
+    needs: [frontend-lint, frontend-test, frontend-sonar]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+          run_install: false
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Next.js application
+        working-directory: ./frontend
+        run: pnpm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: frontend/.next/
+          retention-days: 7

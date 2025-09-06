@@ -1,9 +1,9 @@
 name: Frontend Docker Build and Deploy
 
 on:
-  # Wait for CI workflow to complete successfully
+  # Wait for Frontend CI workflow to complete successfully
   workflow_run:
-    workflows: ["CI"]
+    workflows: ["Frontend CI"]
     types:
       - completed
     branches: [ master, dev ]
