@@ -87,12 +87,160 @@ jobs:
           DATABASE_LOGIN: postgres
           DATABASE_PASSWORD: postgres
           DATABASE_NAME: cvetochey
-        run: mvn test
+        run: mvn test verify
+
+      - name: Generate JaCoCo Report
+        working-directory: ./backend
+        run: mvn jacoco:report
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./backend/target/site/jacoco/jacoco.xml
+          flags: backend
+          name: backend-coverage
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  backend-sonar:
+    name: Backend SonarQube Analysis
+    runs-on: ubuntu-latest
+    needs: [backend-test]
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: cvetochey
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for better analysis
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: Cache SonarQube packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Wait for PostgreSQL
+        run: |
+          until pg_isready -h localhost -p 5432 -U postgres; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+
+      - name: Install and configure Yandex Cloud CLI
+        run: |
+          # Install kubectl
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/
+          
+          # Install yc CLI
+          curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash
+          echo "$HOME/yandex-cloud/bin" >> $GITHUB_PATH
+
+      - name: Configure Yandex Cloud credentials
+        run: |
+          # Configure yc
+          echo "${{ secrets.YC_SERVICE_ACCOUNT_KEY }}" | base64 -d > key.json
+          $HOME/yandex-cloud/bin/yc config set service-account-key key.json
+          $HOME/yandex-cloud/bin/yc config set cloud-id ${{ secrets.YC_CLOUD_ID }}
+          $HOME/yandex-cloud/bin/yc config set folder-id ${{ secrets.YC_FOLDER_ID }}
+
+      - name: Setup SonarQube access via port-forward
+        run: |
+          # Get cluster credentials
+          $HOME/yandex-cloud/bin/yc managed-kubernetes cluster get-credentials cvetochey-cluster --external
+          
+          # Start port-forward in background
+          kubectl port-forward -n sonarqube svc/sonarqube 9000:9000 &
+          PORT_FORWARD_PID=$!
+          echo "PORT_FORWARD_PID=$PORT_FORWARD_PID" >> $GITHUB_ENV
+          
+          # Wait for port-forward to be ready
+          sleep 10
+          
+          # Test connection
+          curl -s http://localhost:9000/api/system/status || echo "SonarQube not ready yet"
+
+      - name: Run tests and SonarQube analysis
+        working-directory: ./backend
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          DATABASE_DRIVER: jdbc:postgresql
+          DATABASE_HOST: localhost
+          DATABASE_PORT: 5432
+          DATABASE_LOGIN: postgres
+          DATABASE_PASSWORD: postgres
+          DATABASE_NAME: cvetochey
+        run: |
+          # Set branch name for SonarQube analysis
+          BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
+          echo "Analyzing branch: $BRANCH_NAME"
+          
+          # Use localhost with port-forward
+          SONAR_URL="http://localhost:9000"
+          
+          # Use different project keys for different branches
+          if [ "$BRANCH_NAME" = "dev" ]; then
+            mvn clean verify sonar:sonar \
+              -Dsonar.projectKey=cvetochey-backend-dev \
+              -Dsonar.host.url="$SONAR_URL" \
+              -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+              -Dsonar.qualitygate.wait=true \
+              -Dsonar.projectVersion="dev-${{ github.sha }}"
+          elif [ "$BRANCH_NAME" = "master" ]; then
+            mvn clean verify sonar:sonar \
+              -Dsonar.projectKey=cvetochey-backend \
+              -Dsonar.host.url="$SONAR_URL" \
+              -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+              -Dsonar.qualitygate.wait=true \
+              -Dsonar.projectVersion="master-${{ github.sha }}"
+          else
+            mvn clean verify sonar:sonar \
+              -Dsonar.projectKey=cvetochey-backend \
+              -Dsonar.host.url="$SONAR_URL" \
+              -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+              -Dsonar.qualitygate.wait=true \
+              -Dsonar.projectVersion="${{ github.sha }}"
+          fi
+
+      - name: Cleanup port-forward
+        if: always()
+        run: |
+          if [ ! -z "$PORT_FORWARD_PID" ]; then
+            kill $PORT_FORWARD_PID || true
+          fi
 
   backend-build:
     name: Backend Build (Maven)
     runs-on: ubuntu-latest
-    needs: [backend-lint, backend-test]
+    needs: [backend-lint, backend-test, backend-sonar]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -192,12 +340,109 @@ jobs:
 
       - name: Run tests
         working-directory: ./frontend
-        run: pnpm run test
+        run: pnpm run test -- --coverage --watchAll=false
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./frontend/coverage/lcov.info
+          flags: frontend
+          name: frontend-coverage
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  frontend-sonar:
+    name: Frontend SonarQube Analysis
+    runs-on: ubuntu-latest
+    needs: [frontend-test]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for better analysis
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Enable pnpm
+        run: corepack enable pnpm
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Cache SonarQube packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests with coverage
+        working-directory: ./frontend
+        run: pnpm run test -- --coverage --watchAll=false
+
+      - name: SonarQube Scan
+        uses: sonarqube-quality-gate-action@master
+        with:
+          scanMetadataReportFile: frontend/coverage/lcov.info
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+      - name: Run SonarQube Scanner
+        working-directory: ./frontend
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          # Set branch name for SonarQube analysis
+          BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
+          echo "Analyzing branch: $BRANCH_NAME"
+          
+          # Use different project keys for different branches
+          if [ "$BRANCH_NAME" = "dev" ]; then
+            npx sonar-scanner \
+              -Dsonar.projectKey=cvetochey-frontend-dev \
+              -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+              -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+              -Dsonar.qualitygate.wait=true \
+              -Dsonar.projectVersion="dev-${{ github.sha }}"
+          elif [ "$BRANCH_NAME" = "master" ]; then
+            npx sonar-scanner \
+              -Dsonar.projectKey=cvetochey-frontend \
+              -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+              -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+              -Dsonar.qualitygate.wait=true \
+              -Dsonar.projectVersion="master-${{ github.sha }}"
+          else
+            npx sonar-scanner \
+              -Dsonar.projectKey=cvetochey-frontend \
+              -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+              -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+              -Dsonar.qualitygate.wait=true \
+              -Dsonar.projectVersion="${{ github.sha }}"
+          fi
 
   frontend-build:
     name: Frontend Build (Next.js)
     runs-on: ubuntu-latest
-    needs: [frontend-lint, frontend-test]
+    needs: [frontend-lint, frontend-test, frontend-sonar]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
