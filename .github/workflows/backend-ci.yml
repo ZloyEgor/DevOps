@@ -200,33 +200,14 @@ jobs:
             VERSION_PREFIX="feature"
           fi
           
-          # Run SonarQube analysis
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            # For PRs, analyze as a branch of the target project
-            mvn clean verify sonar:sonar \
-              -Dsonar.projectKey="$PROJECT_KEY" \
-              -Dsonar.host.url="$SONAR_URL" \
-              -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
-              -Dsonar.qualitygate.wait=true \
-              -Dsonar.projectVersion="pr-$PR_KEY-${{ github.sha }}" \
-              -Dsonar.pullrequest.key="$PR_KEY" \
-              -Dsonar.pullrequest.branch="${{ github.head_ref }}" \
-              -Dsonar.pullrequest.base="$BRANCH_NAME" || \
-            mvn clean verify sonar:sonar \
-              -Dsonar.projectKey="$PROJECT_KEY" \
-              -Dsonar.host.url="$SONAR_URL" \
-              -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
-              -Dsonar.qualitygate.wait=true \
-              -Dsonar.projectVersion="pr-$PR_KEY-${{ github.sha }}"
-          else
-            # For direct pushes
-            mvn clean verify sonar:sonar \
-              -Dsonar.projectKey="$PROJECT_KEY" \
-              -Dsonar.host.url="$SONAR_URL" \
-              -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
-              -Dsonar.qualitygate.wait=true \
-              -Dsonar.projectVersion="$VERSION_PREFIX-${{ github.sha }}"
-          fi
+          # Run SonarQube analysis (Community Edition compatible - no branch/PR analysis)
+          # Community Edition only supports main branch analysis
+          mvn clean verify sonar:sonar \
+            -Dsonar.projectKey="$PROJECT_KEY" \
+            -Dsonar.host.url="$SONAR_URL" \
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+            -Dsonar.qualitygate.wait=true \
+            -Dsonar.projectVersion="$VERSION_PREFIX-${{ github.sha }}"
 
 
   backend-build:
