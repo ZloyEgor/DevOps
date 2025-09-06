@@ -1,0 +1,15 @@
+# Trivy ignore file
+# Add CVE IDs or vulnerability patterns to ignore here
+# Example:
+# CVE-2021-44228  # Log4j vulnerability (if not applicable)
+# GHSA-xxxx-xxxx-xxxx  # GitHub Security Advisory ID
+
+# Ignore test files and development dependencies
+**/test/**
+**/tests/**
+**/*test*
+**/*spec*
+
+# Ignore documentation
+**/*.md
+**/docs/**
