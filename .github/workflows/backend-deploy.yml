@@ -1,15 +1,14 @@
 name: Backend Docker Build and Deploy
 
 on:
-  push:
+  # Wait for CI workflow to complete successfully
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
     branches: [ master, dev ]
-    paths:
-      - 'backend/**'
-      - '.github/workflows/backend-deploy.yml'
-  pull_request:
-    branches: [ master, dev ]
-    paths:
-      - 'backend/**'
+  # Also allow manual trigger for testing
+  workflow_dispatch:
 
 env:
   REGISTRY: cr.yandex
@@ -19,6 +18,8 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    # Only run if CI workflow succeeded
+    if: github.event.workflow_run.conclusion == 'success'
     permissions:
       contents: read
       packages: write
@@ -26,17 +27,37 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Need full history to detect changes
+
+    - name: Check if backend files changed
+      id: changes
+      uses: dorny/paths-filter@v2
+      with:
+        filters: |
+          backend:
+            - 'backend/**'
+            - '.github/workflows/backend-deploy.yml'
+
+    - name: Skip if no backend changes
+      if: steps.changes.outputs.backend != 'true'
+      run: |
+        echo "No backend files changed, skipping build and deploy"
+        exit 0
 
     - name: Set up Docker Buildx
+      if: steps.changes.outputs.backend == 'true'
       uses: docker/setup-buildx-action@v3
       with:
         platforms: linux/amd64,linux/arm64
 
     - name: Log in to Yandex Container Registry
+      if: steps.changes.outputs.backend == 'true'
       run: |
         echo "${{ secrets.YC_SERVICE_ACCOUNT_KEY }}" | base64 -d | docker login ${{ env.REGISTRY }} -u json_key --password-stdin
 
     - name: Extract metadata
+      if: steps.changes.outputs.backend == 'true'
       id: meta
       uses: docker/metadata-action@v5
       with:
@@ -52,6 +73,7 @@ jobs:
           org.opencontainers.image.vendor=CvetOchey
 
     - name: Build and push Docker image
+      if: steps.changes.outputs.backend == 'true'
       uses: docker/build-push-action@v5
       with:
         context: ./backend
@@ -65,7 +87,7 @@ jobs:
           BUILDPLATFORM=linux/amd64
 
     - name: Install and configure Yandex Cloud CLI
-      if: github.ref == 'refs/heads/master'
+      if: steps.changes.outputs.backend == 'true' && github.event.workflow_run.head_branch == 'master'
       run: |
         # Install kubectl
         curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
@@ -81,7 +103,7 @@ jobs:
         $HOME/yandex-cloud/bin/yc version
 
     - name: Configure Yandex Cloud credentials
-      if: github.ref == 'refs/heads/master'
+      if: steps.changes.outputs.backend == 'true' && github.event.workflow_run.head_branch == 'master'
       run: |
         # Configure yc
         echo "${{ secrets.YC_SERVICE_ACCOUNT_KEY }}" | base64 -d > key.json
@@ -93,7 +115,7 @@ jobs:
         $HOME/yandex-cloud/bin/yc config list
 
     - name: Deploy to Kubernetes
-      if: github.ref == 'refs/heads/master'
+      if: steps.changes.outputs.backend == 'true' && github.event.workflow_run.head_branch == 'master'
       run: |
         # Get cluster credentials
         $HOME/yandex-cloud/bin/yc managed-kubernetes cluster get-credentials cvetochey-cluster --external
@@ -116,7 +138,7 @@ jobs:
         kubectl describe deployment backend -n cvetochey
 
     - name: Verify deployment health
-      if: github.ref == 'refs/heads/master'
+      if: steps.changes.outputs.backend == 'true' && github.event.workflow_run.head_branch == 'master'
       run: |
         # Wait for pods to be ready
         kubectl wait --for=condition=ready pod -l app=backend -n cvetochey --timeout=300s
@@ -141,7 +163,7 @@ jobs:
         rm -f key.json
         
         # Show final status
-        if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
+        if [[ "${{ github.event.workflow_run.head_branch }}" == "master" ]]; then
           echo "=== Final Deployment Status ==="
           kubectl get deployment backend -n cvetochey
           kubectl get pods -n cvetochey -l app=backend
