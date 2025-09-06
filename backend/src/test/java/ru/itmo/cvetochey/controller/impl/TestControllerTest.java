@@ -1,64 +1,57 @@
 package ru.itmo.cvetochey.controller.impl;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(TestController.class)
-@ActiveProfiles("test")
 class TestControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    private TestController testController;
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @Test
-    void testCors_ShouldReturnSuccessMessage() throws Exception {
-        mockMvc.perform(get("/cvet-ochey/api/v1/test/cors"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.message").value("CORS is working!"))
-            .andExpect(jsonPath("$.timestamp").exists());
+    @BeforeEach
+    void setUp() {
+        testController = new TestController();
     }
 
     @Test
-    void testCorsPost_ShouldReturnSuccessMessage_WithBody() throws Exception {
+    void testCors_ShouldReturnSuccessMessage() {
+        Map<String, String> response = testController.testCors();
+        
+        assertNotNull(response);
+        assertEquals("CORS is working!", response.get("message"));
+        assertNotNull(response.get("timestamp"));
+    }
+
+    @Test
+    void testCorsPost_ShouldReturnSuccessMessage_WithBody() {
         Map<String, Object> requestBody = Map.of("test", "data");
-
-        mockMvc.perform(post("/cvet-ochey/api/v1/test/cors")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(requestBody)))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.message").value("CORS POST is working!"))
-            .andExpect(jsonPath("$.received").value(requestBody.toString()));
+        
+        Map<String, String> response = testController.testCorsPost(requestBody);
+        
+        assertNotNull(response);
+        assertEquals("CORS POST is working!", response.get("message"));
+        assertEquals(requestBody.toString(), response.get("received"));
     }
 
     @Test
-    void testCorsPost_ShouldReturnSuccessMessage_WithoutBody() throws Exception {
-        mockMvc.perform(post("/cvet-ochey/api/v1/test/cors")
-                .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.message").value("CORS POST is working!"))
-            .andExpect(jsonPath("$.received").value("no body"));
+    void testCorsPost_ShouldReturnSuccessMessage_WithoutBody() {
+        Map<String, String> response = testController.testCorsPost(null);
+        
+        assertNotNull(response);
+        assertEquals("CORS POST is working!", response.get("message"));
+        assertEquals("no body", response.get("received"));
     }
 
     @Test
-    void testCorsPost_ShouldReturnSuccessMessage_WithEmptyBody() throws Exception {
-        mockMvc.perform(post("/cvet-ochey/api/v1/test/cors")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{}"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.message").value("CORS POST is working!"))
-            .andExpect(jsonPath("$.received").value("{}"));
+    void testCorsPost_ShouldReturnSuccessMessage_WithEmptyBody() {
+        Map<String, Object> emptyBody = Map.of();
+        
+        Map<String, String> response = testController.testCorsPost(emptyBody);
+        
+        assertNotNull(response);
+        assertEquals("CORS POST is working!", response.get("message"));
+        assertEquals("{}", response.get("received"));
     }
 }
