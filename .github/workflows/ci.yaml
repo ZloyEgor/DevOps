@@ -184,7 +184,7 @@ jobs:
           curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
           chmod +x kubectl
           sudo mv kubectl /usr/local/bin/
-          
+
           # Install yc CLI
           curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash
           echo "$HOME/yandex-cloud/bin" >> $GITHUB_PATH
@@ -201,15 +201,15 @@ jobs:
         run: |
           # Get cluster credentials
           $HOME/yandex-cloud/bin/yc managed-kubernetes cluster get-credentials cvetochey-cluster --external
-          
+
           # Start port-forward in background
           kubectl port-forward -n sonarqube svc/sonarqube 9000:9000 &
           PORT_FORWARD_PID=$!
           echo "PORT_FORWARD_PID=$PORT_FORWARD_PID" >> $GITHUB_ENV
-          
+
           # Wait for port-forward to be ready
           sleep 10
-          
+
           # Test connection
           curl -s http://localhost:9000/api/system/status || echo "SonarQube not ready yet"
 
@@ -234,10 +234,10 @@ jobs:
             BRANCH_NAME="${{ github.ref_name }}"
             echo "Analyzing branch: $BRANCH_NAME"
           fi
-          
+
           # Use localhost with port-forward
           SONAR_URL="http://localhost:9000"
-          
+
           # Use different project keys based on target branch
           if [ "$BRANCH_NAME" = "dev" ]; then
             PROJECT_KEY="cvetochey-backend-dev"
@@ -249,7 +249,7 @@ jobs:
             PROJECT_KEY="cvetochey-backend"
             VERSION_PREFIX="feature"
           fi
-          
+
           # Run SonarQube analysis
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             # For PRs, analyze as a branch of the target project
@@ -474,7 +474,7 @@ jobs:
             BRANCH_NAME="${{ github.ref_name }}"
             echo "Analyzing branch: $BRANCH_NAME"
           fi
-          
+
           # Use different project keys based on target branch
           if [ "$BRANCH_NAME" = "dev" ]; then
             PROJECT_KEY="cvetochey-frontend-dev"
@@ -486,7 +486,7 @@ jobs:
             PROJECT_KEY="cvetochey-frontend"
             VERSION_PREFIX="feature"
           fi
-          
+
           # Run SonarQube analysis
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             # For PRs, analyze as a branch of the target project
