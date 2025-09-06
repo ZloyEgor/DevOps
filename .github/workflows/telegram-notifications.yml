@@ -62,6 +62,42 @@ jobs:
             
             [View Pull Request](${{ github.event.pull_request.html_url }})
 
+      - name: Notify Pull Request Updated
+        if: github.event_name == 'pull_request' && github.event.action == 'synchronize'
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          format: markdown
+          message: |
+            🔄 *Pull Request Updated*
+            
+            *Repository:* [${{ github.repository }}](${{ github.server_url }}/${{ github.repository }})
+            *Title:* ${{ github.event.pull_request.title }}
+            *Author:* ${{ github.event.pull_request.user.login }}
+            *Branch:* `${{ github.event.pull_request.head.ref }}` → `${{ github.event.pull_request.base.ref }}`
+            *Latest Commit:* [${{ github.event.pull_request.head.sha }}](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }})
+            
+            [View Pull Request](${{ github.event.pull_request.html_url }})
+            [View Changes](${{ github.server_url }}/${{ github.repository }}/pull/${{ github.event.pull_request.number }}/files)
+
+      - name: Notify Pull Request Reopened
+        if: github.event_name == 'pull_request' && github.event.action == 'reopened'
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          format: markdown
+          message: |
+            🔄 *Pull Request Reopened*
+            
+            *Repository:* [${{ github.repository }}](${{ github.server_url }}/${{ github.repository }})
+            *Title:* ${{ github.event.pull_request.title }}
+            *Author:* ${{ github.event.pull_request.user.login }}
+            *Branch:* `${{ github.event.pull_request.head.ref }}` → `${{ github.event.pull_request.base.ref }}`
+            
+            [View Pull Request](${{ github.event.pull_request.html_url }})
+
       - name: Notify Pull Request Merged
         if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
         uses: appleboy/telegram-action@master
