@@ -8,7 +8,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   namespace: sonarqube
-  name: ci-role
+  name: ci-sonarqube-role
 rules:
 - apiGroups: [""]
   resources: ["services", "pods", "endpoints"]
@@ -20,7 +20,7 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: ci-role-binding
+  name: ci-sonarqube-role-binding
   namespace: sonarqube
 subjects:
 - kind: User
@@ -28,20 +28,62 @@ subjects:
   apiGroup: rbac.authorization.k8s.io
 roleRef:
   kind: Role
-  name: ci-role
+  name: ci-sonarqube-role
   apiGroup: rbac.authorization.k8s.io
 ---
-# Also create a ClusterRole for broader access if needed
+# Role for cvetochey namespace (deployment operations)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: cvetochey
+  name: ci-cvetochey-role
+rules:
+- apiGroups: [""]
+  resources: ["services", "pods", "endpoints", "events", "configmaps", "secrets"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "replicasets"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: ci-cvetochey-role-binding
+  namespace: cvetochey
+subjects:
+- kind: User
+  name: aje1ojmlgr7rem5oegih  # The service account ID from the error
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: ci-cvetochey-role
+  apiGroup: rbac.authorization.k8s.io
+---
+# ClusterRole for deployment operations
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: ci-cluster-role
 rules:
+# Node access for cluster info
 - apiGroups: [""]
-  resources: ["services", "pods", "endpoints", "namespaces"]
+  resources: ["nodes"]
   verbs: ["get", "list", "watch"]
+# Namespace access
+- apiGroups: [""]
+  resources: ["namespaces"]
+  verbs: ["get", "list", "watch"]
+# Pod and service management
+- apiGroups: [""]
+  resources: ["services", "pods", "endpoints", "events"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+# Deployment management
 - apiGroups: ["apps"]
   resources: ["deployments", "replicasets"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+# ConfigMaps and Secrets (if needed)
+- apiGroups: [""]
+  resources: ["configmaps", "secrets"]
   verbs: ["get", "list", "watch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
