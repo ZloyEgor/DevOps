@@ -1,13 +1,9 @@
 import { login } from '@/features/login';
 import { serialize } from 'cookie';
-import { NextRequest } from 'next/server';
 
-export async function POST(req: NextRequest) {
+export async function POST() {
     try {
-        const body = await req.json();
-
-        const { email, password } = body;
-        const result = await login('credentials', { email, password });
+        const result = await login();
 
         if (result) {
             const cookie = serialize('session', 'YOUR SECRET TOKEN', {

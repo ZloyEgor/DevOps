@@ -17,7 +17,7 @@ public class CatalogDto {
 
   @Schema(
       description = "Описание каталога",
-      example = "Различные весенние цветы, букеты и композиции.")
+      example = "Различные весенние цветы, букеты, композиции.")
   private String description;
 
   @Schema(description = "Тип каталога", example = "FLOWERS")
