@@ -55,6 +55,16 @@ jobs:
       run: |
         echo "${{ secrets.YC_SERVICE_ACCOUNT_KEY }}" | base64 -d | docker login ${{ env.REGISTRY }} -u json_key --password-stdin
 
+    - name: Set commit SHA for consistent tagging
+      if: steps.changes.outputs.backend == 'true'
+      id: commit
+      run: |
+        # Use the correct commit SHA from workflow_run or current context
+        COMMIT_SHA="${{ github.event.workflow_run.head_sha || github.sha }}"
+        echo "commit_sha=${COMMIT_SHA}" >> $GITHUB_OUTPUT
+        echo "short_sha=${COMMIT_SHA:0:7}" >> $GITHUB_OUTPUT
+        echo "Using commit SHA: ${COMMIT_SHA}"
+
     - name: Extract metadata
       if: steps.changes.outputs.backend == 'true'
       id: meta
@@ -64,7 +74,7 @@ jobs:
         tags: |
           type=ref,event=branch
           type=ref,event=pr
-          type=sha,prefix=commit-
+          type=raw,value=commit-${{ steps.commit.outputs.short_sha }}
           type=raw,value=latest,enable=${{ github.event.workflow_run.head_branch == 'master' || github.ref == 'refs/heads/master' }}
           type=raw,value=dev,enable=${{ github.event.workflow_run.head_branch == 'dev' || github.ref == 'refs/heads/dev' }}
         labels: |
@@ -97,7 +107,7 @@ jobs:
           🚀 **Backend Deployment Started**
           
           **Branch:** `${{ github.event.workflow_run.head_branch || github.ref_name }}`
-          **Image Tag:** `${{ (github.event.workflow_run.head_branch == 'dev' || github.ref_name == 'dev') && 'dev' || 'latest' }}`
+          **Image Tag:** `commit-${{ steps.commit.outputs.short_sha }}` (also tagged as: `${{ (github.event.workflow_run.head_branch == 'dev' || github.ref_name == 'dev') && 'dev' || 'latest' }}`)
           **Commit:** [${{ github.sha }}](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})
           **Workflow:** [View Progress](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
           
@@ -145,15 +155,24 @@ jobs:
         kubectl get deployment backend -n cvetochey -o wide
         
         # Update deployment with new image
-        # Determine image tag based on branch
+        # Use commit SHA to ensure unique image and force pod update
+        COMMIT_SHA="${{ steps.commit.outputs.commit_sha }}"
+        SHORT_SHA="${{ steps.commit.outputs.short_sha }}"
         BRANCH="${{ github.event.workflow_run.head_branch || github.ref_name }}"
+        
+        # Determine primary tag based on branch
         if [[ "$BRANCH" == "dev" ]]; then
-          IMAGE_TAG="dev"
+          PRIMARY_TAG="dev"
         else
-          IMAGE_TAG="latest"
+          PRIMARY_TAG="latest"
         fi
         
-        kubectl set image deployment/backend backend=${{ env.REGISTRY }}/${{ env.REGISTRY_ID }}/${{ env.IMAGE_NAME }}:$IMAGE_TAG -n cvetochey
+        echo "Deploying backend with commit: $COMMIT_SHA (short: $SHORT_SHA)"
+        echo "Branch: $BRANCH, Primary tag: $PRIMARY_TAG"
+        echo "Docker image: ${{ env.REGISTRY }}/${{ env.REGISTRY_ID }}/${{ env.IMAGE_NAME }}:commit-$SHORT_SHA"
+        
+        # Use commit-specific tag to force pod recreation
+        kubectl set image deployment/backend backend=${{ env.REGISTRY }}/${{ env.REGISTRY_ID }}/${{ env.IMAGE_NAME }}:commit-$SHORT_SHA -n cvetochey
         
         # Wait for rollout to complete
         kubectl rollout status deployment/backend -n cvetochey --timeout=300s
@@ -206,7 +225,7 @@ jobs:
           
           **Branch:** `${{ github.event.workflow_run.head_branch || github.ref_name }}`
           **Environment:** `${{ (github.event.workflow_run.head_branch == 'master' || github.ref_name == 'master') && 'Production' || 'Development' }}`
-          **Image:** `cvetochey-backend:${{ (github.event.workflow_run.head_branch == 'dev' || github.ref_name == 'dev') && 'dev' || 'latest' }}`
+          **Image:** `cvetochey-backend:commit-${{ steps.commit.outputs.short_sha }}`
           
           🎉 Backend is now live and healthy!
           📊 [View Logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
