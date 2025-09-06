@@ -40,7 +40,7 @@ class TestControllerTest {
                 .content(objectMapper.writeValueAsString(requestBody)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.message").value("CORS POST is working!"))
-            .andExpected(jsonPath("$.received").value(requestBody.toString()));
+            .andExpect(jsonPath("$.received").value(requestBody.toString()));
     }
 
     @Test

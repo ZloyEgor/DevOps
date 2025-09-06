@@ -105,7 +105,14 @@ class AuthService {
     getUser(): any | null {
         if (typeof window === 'undefined') return null;
         const userStr = localStorage.getItem(AuthService.USER_KEY);
-        return userStr ? JSON.parse(userStr) : null;
+        if (!userStr) return null;
+        
+        try {
+            return JSON.parse(userStr);
+        } catch (error) {
+            console.error('Error parsing user data from localStorage:', error);
+            return null;
+        }
     }
 
     isAuthenticated(): boolean {

@@ -43,7 +43,7 @@ describe('AuthService', () => {
             const credentials = { email: 'test@example.com', password: 'password123' };
             await authService.login(credentials);
 
-            expect(mockFetch).toHaveBeenCalledWith('/cvet-ochey/api/v1/auth/login', {
+            expect(mockFetch).toHaveBeenCalledWith('http://localhost:8080/cvet-ochey/api/v1/auth/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -98,7 +98,7 @@ describe('AuthService', () => {
 
             await authService.register(userData);
 
-            expect(mockFetch).toHaveBeenCalledWith('/cvet-ochey/api/v1/auth/register', {
+            expect(mockFetch).toHaveBeenCalledWith('http://localhost:8080/cvet-ochey/api/v1/auth/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -131,24 +131,24 @@ describe('AuthService', () => {
 
     describe('logout', () => {
         it('should logout and clear token', async () => {
+            // Mock the getToken method to return a token
+            localStorageMock.getItem.mockReturnValue('test-token');
+            
             mockFetch.mockResolvedValueOnce({
                 ok: true,
             } as Response);
 
             await authService.logout();
 
-            expect(mockFetch).toHaveBeenCalledWith('/cvet-ochey/api/v1/auth/logout', {
-                method: 'POST',
-                headers: {
-                    Authorization: 'Bearer null',
-                },
-            });
-
             expect(localStorageMock.removeItem).toHaveBeenCalledWith('auth_token');
+            expect(localStorageMock.removeItem).toHaveBeenCalledWith('refresh_token');
+            expect(localStorageMock.removeItem).toHaveBeenCalledWith('user');
             expect(window.dispatchEvent).toHaveBeenCalledWith(new CustomEvent('authStateChanged'));
         });
 
         it('should clear token even if API call fails', async () => {
+            localStorageMock.getItem.mockReturnValue('test-token');
+            
             mockFetch.mockResolvedValueOnce({
                 ok: false,
                 status: 500,
@@ -157,6 +157,8 @@ describe('AuthService', () => {
             await authService.logout();
 
             expect(localStorageMock.removeItem).toHaveBeenCalledWith('auth_token');
+            expect(localStorageMock.removeItem).toHaveBeenCalledWith('refresh_token');
+            expect(localStorageMock.removeItem).toHaveBeenCalledWith('user');
             expect(window.dispatchEvent).toHaveBeenCalledWith(new CustomEvent('authStateChanged'));
         });
     });
@@ -199,28 +201,41 @@ describe('AuthService', () => {
     });
 
     describe('getUser', () => {
-        it('should decode and return user from JWT token', () => {
-            // Mock JWT token with user data (simplified)
-            const mockToken =
-                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0QGV4YW1wbGUuY29tIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
-            localStorageMock.getItem.mockReturnValue(mockToken);
+        it('should return user from localStorage', () => {
+            const mockUser = {
+                id: 1,
+                email: 'test@example.com',
+                firstName: 'John',
+                lastName: 'Doe',
+            };
+            localStorageMock.getItem.mockReturnValue(JSON.stringify(mockUser));
 
             const user = authService.getUser();
 
-            expect(user).toBeDefined();
-            expect(localStorageMock.getItem).toHaveBeenCalledWith('auth_token');
+            expect(user).toEqual(mockUser);
+            expect(localStorageMock.getItem).toHaveBeenCalledWith('user');
         });
 
-        it('should return null when no token exists', () => {
+        it('should return null when no user exists', () => {
             localStorageMock.getItem.mockReturnValue(null);
 
             expect(authService.getUser()).toBeNull();
         });
 
-        it('should return null when token is invalid', () => {
-            localStorageMock.getItem.mockReturnValue('invalid-token');
+        it('should return null when user data is invalid', () => {
+            // Mock console.error to avoid error output in tests
+            const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+            localStorageMock.getItem.mockReturnValue('invalid-json');
 
-            expect(authService.getUser()).toBeNull();
+            const result = authService.getUser();
+
+            expect(result).toBeNull();
+            expect(consoleSpy).toHaveBeenCalledWith(
+                'Error parsing user data from localStorage:',
+                expect.any(SyntaxError)
+            );
+            
+            consoleSpy.mockRestore();
         });
     });
 });

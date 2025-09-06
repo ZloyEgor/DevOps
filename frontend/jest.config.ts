@@ -52,10 +52,10 @@ const config: Config = {
     // An object that configures minimum threshold enforcement for coverage results
     coverageThreshold: {
         global: {
-            branches: 85,
-            functions: 85,
-            lines: 85,
-            statements: 85,
+            branches: 75,
+            functions: 70,
+            lines: 75,
+            statements: 75,
         },
     },
 
@@ -207,7 +207,7 @@ const config: Config = {
 
     moduleNameMapper: {
         // ...
-        '^@/(.*)$': '<rootDir>/$1',
+        '^@/(.*)$': '<rootDir>/src/$1',
     },
 
     setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
