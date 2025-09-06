@@ -4,7 +4,6 @@ export const login = async (...args) => {
             r.text()
         );
         console.log({ result });
-        console.log('Hello, world!', args);
         return result;
     } catch (e) {
         console.log(e);
