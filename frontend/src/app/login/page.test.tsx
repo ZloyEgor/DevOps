@@ -54,7 +54,7 @@ describe('LoginPage', () => {
 
     it('renders form container with correct class', () => {
         const { container } = render(<LoginPage />);
-        
+
         expect(container.querySelector('form')).toBeInTheDocument();
     });
 });

@@ -106,7 +106,7 @@ class AuthService {
         if (typeof window === 'undefined') return null;
         const userStr = localStorage.getItem(AuthService.USER_KEY);
         if (!userStr) return null;
-        
+
         try {
             return JSON.parse(userStr);
         } catch (error) {

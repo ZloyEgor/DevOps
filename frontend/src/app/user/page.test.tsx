@@ -11,7 +11,7 @@ describe('User Page', () => {
 
     it('renders as a div element', () => {
         const { container } = render(<UserPage />);
-        
+
         expect(container.firstChild).toBeTruthy();
         expect(container.firstChild?.textContent).toBe('User page');
     });

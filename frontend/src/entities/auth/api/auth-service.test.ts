@@ -43,13 +43,16 @@ describe('AuthService', () => {
             const credentials = { email: 'test@example.com', password: 'password123' };
             await authService.login(credentials);
 
-            expect(mockFetch).toHaveBeenCalledWith('http://localhost:8080/cvet-ochey/api/v1/auth/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(credentials),
-            });
+            expect(mockFetch).toHaveBeenCalledWith(
+                'http://localhost:8080/cvet-ochey/api/v1/auth/login',
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(credentials),
+                }
+            );
 
             expect(localStorageMock.setItem).toHaveBeenCalledWith('auth_token', 'jwt-token-123');
             expect(window.dispatchEvent).toHaveBeenCalledWith(new CustomEvent('authStateChanged'));
@@ -98,13 +101,16 @@ describe('AuthService', () => {
 
             await authService.register(userData);
 
-            expect(mockFetch).toHaveBeenCalledWith('http://localhost:8080/cvet-ochey/api/v1/auth/register', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(userData),
-            });
+            expect(mockFetch).toHaveBeenCalledWith(
+                'http://localhost:8080/cvet-ochey/api/v1/auth/register',
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(userData),
+                }
+            );
 
             expect(localStorageMock.setItem).toHaveBeenCalledWith('auth_token', 'jwt-token-456');
             expect(window.dispatchEvent).toHaveBeenCalledWith(new CustomEvent('authStateChanged'));
@@ -133,7 +139,7 @@ describe('AuthService', () => {
         it('should logout and clear token', async () => {
             // Mock the getToken method to return a token
             localStorageMock.getItem.mockReturnValue('test-token');
-            
+
             mockFetch.mockResolvedValueOnce({
                 ok: true,
             } as Response);
@@ -148,7 +154,7 @@ describe('AuthService', () => {
 
         it('should clear token even if API call fails', async () => {
             localStorageMock.getItem.mockReturnValue('test-token');
-            
+
             mockFetch.mockResolvedValueOnce({
                 ok: false,
                 status: 500,
@@ -234,7 +240,7 @@ describe('AuthService', () => {
                 'Error parsing user data from localStorage:',
                 expect.any(SyntaxError)
             );
-            
+
             consoleSpy.mockRestore();
         });
     });

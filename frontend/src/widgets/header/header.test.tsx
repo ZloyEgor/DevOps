@@ -49,8 +49,14 @@ describe('Header', () => {
         render(<Header />);
 
         expect(window.addEventListener).toHaveBeenCalledWith('focus', expect.any(Function));
-        expect(window.addEventListener).toHaveBeenCalledWith('authStateChanged', expect.any(Function));
-        expect(window.addEventListener).toHaveBeenCalledWith('cartStateChanged', expect.any(Function));
+        expect(window.addEventListener).toHaveBeenCalledWith(
+            'authStateChanged',
+            expect.any(Function)
+        );
+        expect(window.addEventListener).toHaveBeenCalledWith(
+            'cartStateChanged',
+            expect.any(Function)
+        );
     });
 
     it('cleans up event listeners on unmount', () => {
@@ -58,7 +64,13 @@ describe('Header', () => {
         unmount();
 
         expect(window.removeEventListener).toHaveBeenCalledWith('focus', expect.any(Function));
-        expect(window.removeEventListener).toHaveBeenCalledWith('authStateChanged', expect.any(Function));
-        expect(window.removeEventListener).toHaveBeenCalledWith('cartStateChanged', expect.any(Function));
+        expect(window.removeEventListener).toHaveBeenCalledWith(
+            'authStateChanged',
+            expect.any(Function)
+        );
+        expect(window.removeEventListener).toHaveBeenCalledWith(
+            'cartStateChanged',
+            expect.any(Function)
+        );
     });
 });

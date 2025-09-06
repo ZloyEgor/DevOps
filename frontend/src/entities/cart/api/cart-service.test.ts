@@ -59,7 +59,13 @@ describe('CartService', () => {
                 {
                     id: '1',
                     productId: 1,
-                    product: { id: 1, name: 'Product 1', price: 100, description: '', imageUrl: '' },
+                    product: {
+                        id: 1,
+                        name: 'Product 1',
+                        price: 100,
+                        description: '',
+                        imageUrl: '',
+                    },
                     quantity: 2,
                     addedAt: new Date().toISOString(),
                 },
@@ -81,14 +87,26 @@ describe('CartService', () => {
                 {
                     id: '1',
                     productId: 1,
-                    product: { id: 1, name: 'Product 1', price: 100, description: '', imageUrl: '' },
+                    product: {
+                        id: 1,
+                        name: 'Product 1',
+                        price: 100,
+                        description: '',
+                        imageUrl: '',
+                    },
                     quantity: 2,
                     addedAt: new Date().toISOString(),
                 },
                 {
                     id: '2',
                     productId: 2,
-                    product: { id: 2, name: 'Product 2', price: 200, description: '', imageUrl: '' },
+                    product: {
+                        id: 2,
+                        name: 'Product 2',
+                        price: 200,
+                        description: '',
+                        imageUrl: '',
+                    },
                     quantity: 3,
                     addedAt: new Date().toISOString(),
                 },
@@ -115,14 +133,26 @@ describe('CartService', () => {
                 {
                     id: '1',
                     productId: 1,
-                    product: { id: 1, name: 'Product 1', price: 100, description: '', imageUrl: '' },
+                    product: {
+                        id: 1,
+                        name: 'Product 1',
+                        price: 100,
+                        description: '',
+                        imageUrl: '',
+                    },
                     quantity: 2,
                     addedAt: new Date().toISOString(),
                 },
                 {
                     id: '2',
                     productId: 2,
-                    product: { id: 2, name: 'Product 2', price: 200, description: '', imageUrl: '' },
+                    product: {
+                        id: 2,
+                        name: 'Product 2',
+                        price: 200,
+                        description: '',
+                        imageUrl: '',
+                    },
                     quantity: 3,
                     addedAt: new Date().toISOString(),
                 },
@@ -166,9 +196,7 @@ describe('CartService', () => {
 
             cartService.addToCart(product, 2);
 
-            expect(consoleLogSpy).toHaveBeenCalledWith(
-                expect.stringContaining('Adding product')
-            );
+            expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('Adding product'));
         });
     });
 
@@ -178,7 +206,13 @@ describe('CartService', () => {
                 {
                     id: '1',
                     productId: 1,
-                    product: { id: 1, name: 'Product 1', price: 100, description: '', imageUrl: '' },
+                    product: {
+                        id: 1,
+                        name: 'Product 1',
+                        price: 100,
+                        description: '',
+                        imageUrl: '',
+                    },
                     quantity: 2,
                     addedAt: new Date().toISOString(),
                 },
@@ -198,7 +232,13 @@ describe('CartService', () => {
                 {
                     id: '1',
                     productId: 1,
-                    product: { id: 1, name: 'Product 1', price: 100, description: '', imageUrl: '' },
+                    product: {
+                        id: 1,
+                        name: 'Product 1',
+                        price: 100,
+                        description: '',
+                        imageUrl: '',
+                    },
                     quantity: 2,
                     addedAt: new Date().toISOString(),
                 },
