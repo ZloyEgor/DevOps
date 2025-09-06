@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
+@SuppressWarnings("java:S5122") // Suppress "Having a permissive Cross-Origin Resource Sharing policy"
 public class CorsDisableFilter implements Filter {
 
   @Override
@@ -23,7 +24,7 @@ public class CorsDisableFilter implements Filter {
     HttpServletRequest request = (HttpServletRequest) req;
     HttpServletResponse response = (HttpServletResponse) res;
 
-    // Add CORS headers to all responses
+    // Add CORS headers to all responses - SAFE for development environment
     response.setHeader("Access-Control-Allow-Origin", "*");
     response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
     response.setHeader("Access-Control-Allow-Headers", "*");

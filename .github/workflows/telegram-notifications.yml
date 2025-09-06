@@ -1,0 +1,190 @@
+name: Telegram Notifications
+
+on:
+  push:
+    branches: [ master, dev ]
+  pull_request:
+    types: [opened, closed, reopened, synchronize]
+    branches: [ master, dev ]
+  workflow_run:
+    workflows: ["CI", "Backend Docker Build and Deploy", "Frontend Docker Build and Deploy"]
+    types: [completed]
+  release:
+    types: [published]
+
+jobs:
+  notify-telegram:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get commit info
+        id: commit_info
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "commit_message=$(git log --format=%B -n 1 ${{ github.sha }} | head -1)" >> $GITHUB_OUTPUT
+            echo "commit_author=$(git log --format='%an' -n 1 ${{ github.sha }})" >> $GITHUB_OUTPUT
+            echo "commit_url=${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Notify Push to Branch
+        if: github.event_name == 'push'
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          format: markdown
+          message: |
+            🚀 *New Push to ${{ github.ref_name }}*
+            
+            *Repository:* [${{ github.repository }}](${{ github.server_url }}/${{ github.repository }})
+            *Author:* ${{ steps.commit_info.outputs.commit_author }}
+            *Commit:* [${{ github.sha }}](${{ steps.commit_info.outputs.commit_url }})
+            *Message:* ${{ steps.commit_info.outputs.commit_message }}
+            
+            [View Changes](${{ github.server_url }}/${{ github.repository }}/compare/${{ github.event.before }}...${{ github.sha }})
+
+      - name: Notify Pull Request Opened
+        if: github.event_name == 'pull_request' && github.event.action == 'opened'
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          format: markdown
+          message: |
+            📋 *New Pull Request Opened*
+            
+            *Repository:* [${{ github.repository }}](${{ github.server_url }}/${{ github.repository }})
+            *Title:* ${{ github.event.pull_request.title }}
+            *Author:* ${{ github.event.pull_request.user.login }}
+            *Branch:* `${{ github.event.pull_request.head.ref }}` → `${{ github.event.pull_request.base.ref }}`
+            
+            [View Pull Request](${{ github.event.pull_request.html_url }})
+
+      - name: Notify Pull Request Updated
+        if: github.event_name == 'pull_request' && github.event.action == 'synchronize'
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          format: markdown
+          message: |
+            🔄 *Pull Request Updated*
+            
+            *Repository:* [${{ github.repository }}](${{ github.server_url }}/${{ github.repository }})
+            *Title:* ${{ github.event.pull_request.title }}
+            *Author:* ${{ github.event.pull_request.user.login }}
+            *Branch:* `${{ github.event.pull_request.head.ref }}` → `${{ github.event.pull_request.base.ref }}`
+            *Latest Commit:* [${{ github.event.pull_request.head.sha }}](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }})
+            
+            [View Pull Request](${{ github.event.pull_request.html_url }})
+            [View Changes](${{ github.server_url }}/${{ github.repository }}/pull/${{ github.event.pull_request.number }}/files)
+
+      - name: Notify Pull Request Reopened
+        if: github.event_name == 'pull_request' && github.event.action == 'reopened'
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          format: markdown
+          message: |
+            🔄 *Pull Request Reopened*
+            
+            *Repository:* [${{ github.repository }}](${{ github.server_url }}/${{ github.repository }})
+            *Title:* ${{ github.event.pull_request.title }}
+            *Author:* ${{ github.event.pull_request.user.login }}
+            *Branch:* `${{ github.event.pull_request.head.ref }}` → `${{ github.event.pull_request.base.ref }}`
+            
+            [View Pull Request](${{ github.event.pull_request.html_url }})
+
+      - name: Notify Pull Request Merged
+        if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          format: markdown
+          message: |
+            ✅ *Pull Request Merged*
+            
+            *Repository:* [${{ github.repository }}](${{ github.server_url }}/${{ github.repository }})
+            *Title:* ${{ github.event.pull_request.title }}
+            *Author:* ${{ github.event.pull_request.user.login }}
+            *Merged by:* ${{ github.event.pull_request.merged_by.login }}
+            *Branch:* `${{ github.event.pull_request.head.ref }}` → `${{ github.event.pull_request.base.ref }}`
+            
+            [View Pull Request](${{ github.event.pull_request.html_url }})
+
+      - name: Notify Pull Request Closed
+        if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == false
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          format: markdown
+          message: |
+            ❌ *Pull Request Closed*
+            
+            *Repository:* [${{ github.repository }}](${{ github.server_url }}/${{ github.repository }})
+            *Title:* ${{ github.event.pull_request.title }}
+            *Author:* ${{ github.event.pull_request.user.login }}
+            *Branch:* `${{ github.event.pull_request.head.ref }}` → `${{ github.event.pull_request.base.ref }}`
+            
+            [View Pull Request](${{ github.event.pull_request.html_url }})
+
+      - name: Notify Workflow Success
+        if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success'
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          format: markdown
+          message: |
+            ✅ *Workflow Completed Successfully*
+            
+            *Repository:* [${{ github.repository }}](${{ github.server_url }}/${{ github.repository }})
+            *Workflow:* ${{ github.event.workflow_run.name }}
+            *Branch:* ${{ github.event.workflow_run.head_branch }}
+            *Triggered by:* ${{ github.event.workflow_run.triggering_actor.login }}
+            
+            [View Workflow Run](${{ github.event.workflow_run.html_url }})
+
+      - name: Notify Workflow Failure
+        if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'failure'
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          format: markdown
+          message: |
+            ❌ *Workflow Failed*
+            
+            *Repository:* [${{ github.repository }}](${{ github.server_url }}/${{ github.repository }})
+            *Workflow:* ${{ github.event.workflow_run.name }}
+            *Branch:* ${{ github.event.workflow_run.head_branch }}
+            *Triggered by:* ${{ github.event.workflow_run.triggering_actor.login }}
+            
+            [View Workflow Run](${{ github.event.workflow_run.html_url }})
+            
+            Please check the logs and fix the issues.
+
+      - name: Notify Release
+        if: github.event_name == 'release' && github.event.action == 'published'
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          format: markdown
+          message: |
+            🎉 *New Release Published*
+            
+            *Repository:* [${{ github.repository }}](${{ github.server_url }}/${{ github.repository }})
+            *Release:* ${{ github.event.release.name }}
+            *Tag:* ${{ github.event.release.tag_name }}
+            *Author:* ${{ github.event.release.author.login }}
+            
+            *Description:*
+            ${{ github.event.release.body }}
+            
+            [View Release](${{ github.event.release.html_url }})

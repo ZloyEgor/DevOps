@@ -1,7 +1,7 @@
 import { FC } from 'react';
 
 const UserPage: FC = () => {
-    return <>Юзер ёпта</>;
+    return <>User page</>;
 };
 
 export default UserPage;

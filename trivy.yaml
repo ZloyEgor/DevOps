@@ -1,0 +1,57 @@
+# Trivy configuration file
+# https://aquasecurity.github.io/trivy/latest/docs/references/configuration/config-file/
+
+# Scan settings
+scan:
+  # Skip files and directories
+  skip-files:
+    - "**/*test*"
+    - "**/*spec*"
+    - "**/node_modules/**"
+    - "**/target/**"
+    - "**/.git/**"
+  
+  # Skip directories
+  skip-dirs:
+    - "node_modules"
+    - "target"
+    - ".git"
+
+# Vulnerability settings
+vulnerability:
+  # Vulnerability types to detect
+  type:
+    - os
+    - library
+  
+  # Severity levels to report
+  severity:
+    - UNKNOWN
+    - LOW
+    - MEDIUM
+    - HIGH
+    - CRITICAL
+
+# Misconfiguration settings
+misconfiguration:
+  # Include Kubernetes, Docker, Terraform configs
+  include-non-failures: false
+  
+  # Severity levels for misconfigurations
+  severity:
+    - MEDIUM
+    - HIGH
+    - CRITICAL
+
+# Secret scanning settings
+secret:
+  # Enable secret detection
+  config: ""
+
+# Output format
+format: sarif
+
+# Cache settings
+cache:
+  # Cache directory
+  dir: /tmp/trivy-cache

@@ -1,0 +1,58 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ci-service-account
+  namespace: sonarqube
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: sonarqube
+  name: ci-role
+rules:
+- apiGroups: [""]
+  resources: ["services", "pods", "endpoints"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "replicasets"]
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: ci-role-binding
+  namespace: sonarqube
+subjects:
+- kind: User
+  name: aje1ojmlgr7rem5oegih  # The service account ID from the error
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: ci-role
+  apiGroup: rbac.authorization.k8s.io
+---
+# Also create a ClusterRole for broader access if needed
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: ci-cluster-role
+rules:
+- apiGroups: [""]
+  resources: ["services", "pods", "endpoints", "namespaces"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "replicasets"]
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: ci-cluster-role-binding
+subjects:
+- kind: User
+  name: aje1ojmlgr7rem5oegih  # The service account ID from the error
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: ci-cluster-role
+  apiGroup: rbac.authorization.k8s.io

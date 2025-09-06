@@ -1,0 +1,206 @@
+name: Frontend CI
+
+on:
+  push:
+    branches:
+      - master
+      - dev
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-ci.yml'
+  pull_request:
+    branches:
+      - master
+      - dev
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-ci.yml'
+
+jobs:
+  frontend-lint:
+    name: Frontend Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Run linters
+        working-directory: ./frontend
+        run: pnpm run lint
+
+  frontend-test:
+    name: Frontend Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests with coverage
+        working-directory: ./frontend
+        run: pnpm run test:coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./frontend/coverage/lcov.info
+          flags: frontend
+          name: frontend-coverage
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  frontend-sonar:
+    name: Frontend SonarQube Analysis
+    runs-on: ubuntu-latest
+    needs: [frontend-test]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for better analysis
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests for SonarQube
+        working-directory: ./frontend
+        run: pnpm run test:coverage
+
+      - name: Test SonarQube accessibility
+        run: |
+          # Test SonarQube via load balancer
+          echo "🔗 Testing SonarQube at: http://89.169.138.79:30900"
+          
+          for i in {1..3}; do
+            if curl -s http://89.169.138.79:30900/api/system/status; then
+              echo "✅ SonarQube is accessible via load balancer"
+              break
+            else
+              echo "⏳ Waiting for SonarQube... (attempt $i/3)"
+              sleep 5
+            fi
+          done
+
+      - name: Run SonarQube analysis
+        working-directory: ./frontend
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          # Set branch name for SonarQube analysis
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BRANCH_NAME="${{ github.base_ref }}"
+            PR_KEY="${{ github.event.pull_request.number }}"
+            echo "Analyzing PR #$PR_KEY targeting: $BRANCH_NAME"
+          else
+            BRANCH_NAME="${{ github.ref_name }}"
+            echo "Analyzing branch: $BRANCH_NAME"
+          fi
+          
+          # Use load balancer URL
+          SONAR_URL="http://89.169.138.79:30900"
+          
+          # Use different project keys based on target branch
+          if [ "$BRANCH_NAME" = "dev" ]; then
+            PROJECT_KEY="cvetochey-frontend-dev"
+            VERSION_PREFIX="dev"
+          elif [ "$BRANCH_NAME" = "master" ]; then
+            PROJECT_KEY="cvetochey-frontend"
+            VERSION_PREFIX="master"
+          else
+            PROJECT_KEY="cvetochey-frontend"
+            VERSION_PREFIX="feature"
+          fi
+          
+          # Run SonarQube analysis (Community Edition compatible - no branch/PR analysis)
+          # Community Edition only supports main branch analysis
+          npx sonar-scanner \
+            -Dsonar.projectKey="$PROJECT_KEY" \
+            -Dsonar.host.url="$SONAR_URL" \
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+            -Dsonar.qualitygate.wait=true \
+            -Dsonar.projectVersion="$VERSION_PREFIX-${{ github.sha }}"
+
+
+  frontend-build:
+    name: Frontend Build (Next.js)
+    runs-on: ubuntu-latest
+    needs: [frontend-lint, frontend-test, frontend-sonar]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Next.js application
+        working-directory: ./frontend
+        run: pnpm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: frontend/.next/
+          retention-days: 7

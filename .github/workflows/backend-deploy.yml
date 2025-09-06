@@ -1,15 +1,14 @@
 name: Backend Docker Build and Deploy
 
 on:
-  push:
+  # Wait for Backend CI workflow to complete successfully
+  workflow_run:
+    workflows: ["Backend CI"]
+    types:
+      - completed
     branches: [ master, dev ]
-    paths:
-      - 'backend/**'
-      - '.github/workflows/backend-deploy.yml'
-  pull_request:
-    branches: [ master, dev ]
-    paths:
-      - 'backend/**'
+  # Also allow manual trigger for testing
+  workflow_dispatch:
 
 env:
   REGISTRY: cr.yandex
@@ -19,6 +18,8 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    # Only run if CI workflow succeeded
+    if: github.event.workflow_run.conclusion == 'success'
     permissions:
       contents: read
       packages: write
@@ -26,17 +27,37 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Need full history to detect changes
+
+    - name: Check if backend files changed
+      id: changes
+      uses: dorny/paths-filter@v2
+      with:
+        filters: |
+          backend:
+            - 'backend/**'
+            - '.github/workflows/backend-deploy.yml'
+
+    - name: Skip if no backend changes
+      if: steps.changes.outputs.backend != 'true'
+      run: |
+        echo "No backend files changed, skipping build and deploy"
+        exit 0
 
     - name: Set up Docker Buildx
+      if: steps.changes.outputs.backend == 'true'
       uses: docker/setup-buildx-action@v3
       with:
         platforms: linux/amd64,linux/arm64
 
     - name: Log in to Yandex Container Registry
+      if: steps.changes.outputs.backend == 'true'
       run: |
         echo "${{ secrets.YC_SERVICE_ACCOUNT_KEY }}" | base64 -d | docker login ${{ env.REGISTRY }} -u json_key --password-stdin
 
     - name: Extract metadata
+      if: steps.changes.outputs.backend == 'true'
       id: meta
       uses: docker/metadata-action@v5
       with:
@@ -52,6 +73,7 @@ jobs:
           org.opencontainers.image.vendor=CvetOchey
 
     - name: Build and push Docker image
+      if: steps.changes.outputs.backend == 'true'
       uses: docker/build-push-action@v5
       with:
         context: ./backend
@@ -62,10 +84,27 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
         build-args: |
+
+    - name: Notify Telegram - Deployment Started
+      if: steps.changes.outputs.backend == 'true' && (github.event.workflow_run.head_branch == 'master' || github.event.workflow_run.head_branch == 'dev')
+      uses: appleboy/telegram-action@master
+      with:
+        to: ${{ secrets.TELEGRAM_CHAT_ID }}
+        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        format: markdown
+        message: |
+          🚀 **Backend Deployment Started**
+          
+          **Branch:** `${{ github.event.workflow_run.head_branch }}`
+          **Image Tag:** `${{ github.event.workflow_run.head_branch == 'dev' && 'dev-latest' || 'latest' }}`
+          **Commit:** [${{ github.sha }}](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})
+          **Workflow:** [View Progress](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          
+          ⏳ Deploying to Kubernetes cluster...
           BUILDPLATFORM=linux/amd64
 
     - name: Install and configure Yandex Cloud CLI
-      if: github.ref == 'refs/heads/master'
+      if: steps.changes.outputs.backend == 'true' && (github.event.workflow_run.head_branch == 'master' || github.event.workflow_run.head_branch == 'dev')
       run: |
         # Install kubectl
         curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
@@ -81,7 +120,7 @@ jobs:
         $HOME/yandex-cloud/bin/yc version
 
     - name: Configure Yandex Cloud credentials
-      if: github.ref == 'refs/heads/master'
+      if: steps.changes.outputs.backend == 'true' && (github.event.workflow_run.head_branch == 'master' || github.event.workflow_run.head_branch == 'dev')
       run: |
         # Configure yc
         echo "${{ secrets.YC_SERVICE_ACCOUNT_KEY }}" | base64 -d > key.json
@@ -93,7 +132,7 @@ jobs:
         $HOME/yandex-cloud/bin/yc config list
 
     - name: Deploy to Kubernetes
-      if: github.ref == 'refs/heads/master'
+      if: steps.changes.outputs.backend == 'true' && (github.event.workflow_run.head_branch == 'master' || github.event.workflow_run.head_branch == 'dev')
       run: |
         # Get cluster credentials
         $HOME/yandex-cloud/bin/yc managed-kubernetes cluster get-credentials cvetochey-cluster --external
@@ -106,7 +145,14 @@ jobs:
         kubectl get deployment backend -n cvetochey -o wide
         
         # Update deployment with new image
-        kubectl set image deployment/backend backend=${{ env.REGISTRY }}/${{ env.REGISTRY_ID }}/${{ env.IMAGE_NAME }}:latest -n cvetochey
+        # Determine image tag based on branch
+        if [[ "${{ github.event.workflow_run.head_branch }}" == "dev" ]]; then
+          IMAGE_TAG="dev-latest"
+        else
+          IMAGE_TAG="latest"
+        fi
+        
+        kubectl set image deployment/backend backend=${{ env.REGISTRY }}/${{ env.REGISTRY_ID }}/${{ env.IMAGE_NAME }}:$IMAGE_TAG -n cvetochey
         
         # Wait for rollout to complete
         kubectl rollout status deployment/backend -n cvetochey --timeout=300s
@@ -116,7 +162,7 @@ jobs:
         kubectl describe deployment backend -n cvetochey
 
     - name: Verify deployment health
-      if: github.ref == 'refs/heads/master'
+      if: steps.changes.outputs.backend == 'true' && (github.event.workflow_run.head_branch == 'master' || github.event.workflow_run.head_branch == 'dev')
       run: |
         # Wait for pods to be ready
         kubectl wait --for=condition=ready pod -l app=backend -n cvetochey --timeout=300s
@@ -132,7 +178,8 @@ jobs:
         # Get pod IP for direct health check
         POD_NAME=$(kubectl get pods -n cvetochey -l app=backend -o jsonpath='{.items[0].metadata.name}')
         echo "Testing health endpoint on pod: $POD_NAME"
-        kubectl exec $POD_NAME -n cvetochey -- curl -f http://localhost:8080/actuator/health || echo "Health check failed"
+        kubectl exec $POD_NAME -n cvetochey -- curl -f 
+        http://localhost:8080/actuator/health || echo "Health check failed"
 
     - name: Cleanup
       if: always()
@@ -141,8 +188,41 @@ jobs:
         rm -f key.json
         
         # Show final status
-        if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
+        if [[ "${{ github.event.workflow_run.head_branch }}" == "master" ]]; then
           echo "=== Final Deployment Status ==="
           kubectl get deployment backend -n cvetochey
           kubectl get pods -n cvetochey -l app=backend
         fi
+    - name: Notify Telegram - Deployment Success
+      if: success() && steps.changes.outputs.backend == 'true' && (github.event.workflow_run.head_branch == 'master' || github.event.workflow_run.head_branch == 'dev')
+      uses: appleboy/telegram-action@master
+      with:
+        to: ${{ secrets.TELEGRAM_CHAT_ID }}
+        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        format: markdown
+        message: |
+          ✅ **Backend Deployment Successful!**
+          
+          **Branch:** `${{ github.event.workflow_run.head_branch }}`
+          **Environment:** `${{ github.event.workflow_run.head_branch == 'master' && 'Production' || 'Development' }}`
+          **Image:** `cvetochey-backend:${{ github.event.workflow_run.head_branch == 'dev' && 'dev-latest' || 'latest' }}`
+          
+          🎉 Backend is now live and healthy!
+          📊 [View Logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+
+    - name: Notify Telegram - Deployment Failed
+      if: failure() && steps.changes.outputs.backend == 'true' && (github.event.workflow_run.head_branch == 'master' || github.event.workflow_run.head_branch == 'dev')
+      uses: appleboy/telegram-action@master
+      with:
+        to: ${{ secrets.TELEGRAM_CHAT_ID }}
+        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        format: markdown
+        message: |
+          ❌ **Backend Deployment Failed!**
+          
+          **Branch:** `${{ github.event.workflow_run.head_branch }}`
+          **Error:** Deployment to Kubernetes failed
+          **Commit:** [${{ github.sha }}](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})
+          
+          🔍 [Check Logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details
+          🚨 Manual intervention may be required
