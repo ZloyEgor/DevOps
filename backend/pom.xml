@@ -304,8 +304,6 @@
                                 <goal>report</goal>
                             </goals>
                         </execution>
-                        <!-- Temporarily disabled to get SonarQube working first -->
-                        <!--
                         <execution>
                             <id>check</id>
                             <phase>verify</phase>
@@ -320,19 +318,18 @@
                                             <limit>
                                                 <counter>INSTRUCTION</counter>
                                                 <value>COVEREDRATIO</value>
-                                                <minimum>0.80</minimum>
+                                                <minimum>0.85</minimum>
                                             </limit>
                                             <limit>
                                                 <counter>BRANCH</counter>
                                                 <value>COVEREDRATIO</value>
-                                                <minimum>0.80</minimum>
+                                                <minimum>0.85</minimum>
                                             </limit>
                                         </limits>
                                     </rule>
                                 </rules>
                             </configuration>
                         </execution>
-                        -->
                     </executions>
                 </plugin>
 
