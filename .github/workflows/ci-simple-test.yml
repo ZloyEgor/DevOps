@@ -1,0 +1,17 @@
+name: CI Simple Test
+
+on:
+  pull_request:
+    branches:
+      - master
+      - dev
+    types: [opened, synchronize, reopened]
+
+jobs:
+  test-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Echo message
+        run: echo "CI Simple Test workflow ran successfully!"
