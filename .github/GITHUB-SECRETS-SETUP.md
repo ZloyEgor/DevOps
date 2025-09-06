@@ -113,3 +113,4 @@ base64 -i new-key.json
 🎯 **Ready to Deploy!** Your CI/CD pipeline is now configured to automatically build and deploy your application when you push changes to the `master` branch!
 
 
+

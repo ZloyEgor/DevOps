@@ -52,7 +52,7 @@ class CartService {
     }
 
     addToCart(productId: NumericId, quantity: number = 1): void {
-        console.log(`Adding product ${productId} with quantity ${quantity} to cart`);
+        console.log(`Adding product ${productId} quantity ${quantity} to cart`);
         this.emitCartChange();
     }
 

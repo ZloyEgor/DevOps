@@ -135,3 +135,4 @@ class CorsDisableFilterTest {
         verify(response, never()).setStatus(HttpServletResponse.SC_OK);
     }
 }
+
