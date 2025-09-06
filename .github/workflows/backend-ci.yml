@@ -178,10 +178,18 @@ jobs:
           echo "PORT_FORWARD_PID=$PORT_FORWARD_PID" >> $GITHUB_ENV
           
           # Wait for port-forward to be ready
-          sleep 10
+          sleep 15
           
-          # Test connection
-          curl -s http://localhost:9000/api/system/status || echo "SonarQube not ready yet"
+          # Test connection with retries
+          for i in {1..5}; do
+            if curl -s http://localhost:9000/api/system/status; then
+              echo "✅ SonarQube is accessible via port-forward"
+              break
+            else
+              echo "⏳ Waiting for SonarQube port-forward... (attempt $i/5)"
+              sleep 10
+            fi
+          done
 
       - name: Run tests and SonarQube analysis
         working-directory: ./backend
