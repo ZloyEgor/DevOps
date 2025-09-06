@@ -187,3 +187,4 @@ npm config get registry
 📦 **NPM Registry Fixed!** Your Docker builds will now download packages from the public npm registry instead of internal Yandex registry.
 
 
+

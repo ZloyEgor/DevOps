@@ -13,3 +13,4 @@
 # Ignore documentation
 **/*.md
 **/docs/**
+

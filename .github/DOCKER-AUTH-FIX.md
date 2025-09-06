@@ -143,3 +143,4 @@ yc container image list --registry-id crpqt390b8gk59ipqid8
 🎯 **Authentication Fixed!** Your GitHub Actions workflows can now successfully push Docker images to Yandex Container Registry.
 
 
+
