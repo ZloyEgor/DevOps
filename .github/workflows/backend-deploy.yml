@@ -178,8 +178,7 @@ jobs:
         # Get pod IP for direct health check
         POD_NAME=$(kubectl get pods -n cvetochey -l app=backend -o jsonpath='{.items[0].metadata.name}')
         echo "Testing health endpoint on pod: $POD_NAME"
-        kubectl exec $POD_NAME -n cvetochey -- curl -f 
-        http://localhost:8080/actuator/health || echo "Health check failed"
+        kubectl exec $POD_NAME -n cvetochey -- curl -f http://localhost:8080/actuator/health || echo "Health check failed"
 
     - name: Cleanup
       if: always()
